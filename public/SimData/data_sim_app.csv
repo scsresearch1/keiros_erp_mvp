@@ -1,0 +1,38 @@
+type,id,username,password,fullName,email,level,role,department,location,avatar,status,permissions,lastLogin
+user,1,admin,admin123,John Admin,admin@keiros.com,admin,Administrator,IT,New York,👨‍💼,Active,"all,read,write,approve,reports",2024-01-15T10:30:00Z
+user,2,operator,op123,Sarah Operator,operator@keiros.com,operator,Device Operator,Operations,New York,👩‍💻,Active,"read,write,approve",2024-01-15T09:15:00Z
+user,3,manager,mg123,Mike Manager,manager@keiros.com,manager,Operations Manager,Operations,New York,👨‍💼,Active,"read,write,approve",2024-01-15T08:45:00Z
+user,4,supervisor,sp123,Lisa Supervisor,supervisor@keiros.com,supervisor,Team Supervisor,Operations,New York,👩‍💼,Active,"read,write",2024-01-15T08:30:00Z
+user,5,analyst,an123,David Analyst,analyst@keiros.com,analyst,Data Analyst,Analytics,New York,👨‍💻,Active,"read,reports",2024-01-15T08:00:00Z
+user,6,driver1,dr123,Tom Driver,tom@delivery.com,driver,Delivery Driver,Logistics,New York,🚚,Active,"read",2024-01-15T07:30:00Z
+user,7,driver2,dr456,Jane Driver,jane@delivery.com,driver,Delivery Driver,Logistics,New York,🚚,Active,"read",2024-01-15T07:15:00Z
+
+type,id,deviceId,deviceName,deviceType,status,isOnline,isMoving,batteryLevel,signalStrength,latitude,longitude,location,geofence,assignedUser,firmwareVersion,lastSeen,lastCommand,geofenceViolations
+device,1,DEV001,GPS Tracker 1,GPS Tracker,Active,true,false,85,Strong,40.7128,-74.0060,Manhattan,Zone A,Tom Driver,v2.1.0,2024-01-15T10:30:00Z,None,0
+device,2,DEV002,GPS Tracker 2,GPS Tracker,Active,true,true,92,Strong,40.7589,-73.9851,Brooklyn,Zone B,Jane Driver,v2.1.0,2024-01-15T10:29:00Z,None,0
+device,3,DEV003,IoT Sensor 1,IoT Sensor,Active,true,false,78,Medium,40.7505,-73.9934,Queens,Zone C,None,v1.8.2,2024-01-15T10:28:00Z,None,0
+device,4,DEV004,GPS Tracker 3,GPS Tracker,Pending Approval,false,false,45,Weak,40.7829,-73.9654,Bronx,Zone D,None,v2.0.5,2024-01-15T10:25:00Z,None,0
+device,5,DEV005,IoT Sensor 2,IoT Sensor,Active,true,false,67,Medium,40.7549,-73.9840,Manhattan,Zone A,None,v1.8.2,2024-01-15T10:27:00Z,None,0
+device,6,DEV006,GPS Tracker 4,GPS Tracker,Active,true,true,88,Strong,40.7484,-73.9857,Brooklyn,Zone B,Tom Driver,v2.1.0,2024-01-15T10:26:00Z,None,2
+device,7,DEV007,IoT Sensor 3,IoT Sensor,Maintenance,false,false,23,Weak,40.7604,-73.9792,Queens,Zone C,None,v1.8.2,2024-01-15T10:20:00Z,Reboot,0
+device,8,DEV008,GPS Tracker 5,GPS Tracker,Active,true,false,95,Strong,40.7368,-73.9909,Manhattan,Zone A,Jane Driver,v2.1.0,2024-01-15T10:24:00Z,None,0
+
+type,id,packageId,description,status,assignedDevice,estimatedDelivery,currentLocation,destination
+package,1,PKG001,Electronics Package,In Transit,DEV001,2024-01-15T14:00:00Z,Manhattan,Brooklyn
+package,2,PKG002,Medical Supplies,In Transit,DEV002,2024-01-15T15:30:00Z,Brooklyn,Queens
+package,3,PKG003,Documents,Delivered,DEV003,2024-01-15T12:00:00Z,Queens,Manhattan
+package,4,PKG004,Clothing Package,In Transit,DEV006,2024-01-15T16:00:00Z,Brooklyn,Bronx
+package,5,PKG005,Food Delivery,In Transit,DEV008,2024-01-15T13:30:00Z,Manhattan,Queens
+package,6,PKG006,Hardware Components,Pending,DEV004,2024-01-16T10:00:00Z,Bronx,Manhattan
+
+type,id,tripId,deviceId,driverName,startTime,endTime,status,route,geofenceViolations,slaCompliance
+trip,1,TRIP001,DEV001,Tom Driver,2024-01-15T08:00:00Z,2024-01-15T14:00:00Z,Active,"[{""lat"":40.7128,""lng"":-74.0060,""status"":""Start""},{""lat"":40.7589,""lng"":-73.9851,""status"":""In Transit""},{""lat"":40.7505,""lng"":-73.9934,""status"":""End""}]",0,On Time
+trip,2,TRIP002,DEV002,Jane Driver,2024-01-15T09:00:00Z,2024-01-15T15:30:00Z,Active,"[{""lat"":40.7589,""lng"":-73.9851,""status"":""Start""},{""lat"":40.7505,""lng"":-73.9934,""status"":""In Transit""},{""lat"":40.7829,""lng"":-73.9654,""status"":""End""}]",0,On Time
+trip,3,TRIP003,DEV006,Tom Driver,2024-01-15T10:00:00Z,2024-01-15T16:00:00Z,Active,"[{""lat"":40.7484,""lng"":-73.9857,""status"":""Start""},{""lat"":40.7829,""lng"":-73.9654,""status"":""In Transit""},{""lat"":40.7128,""lng"":-74.0060,""status"":""End""}]",2,Delayed
+trip,4,TRIP004,DEV008,Jane Driver,2024-01-15T11:00:00Z,2024-01-15T13:30:00Z,Active,"[{""lat"":40.7368,""lng"":-73.9909,""status"":""Start""},{""lat"":40.7505,""lng"":-73.9934,""status"":""In Transit""},{""lat"":40.7549,""lng"":-73.9840,""status"":""End""}]",0,On Time
+
+type,id,geofenceName,centerLat,centerLng,radius,type,status,assignedDevices
+geofence,1,Zone A,40.7128,-74.0060,500,Residential,Active,"DEV001,DEV005,DEV008"
+geofence,2,Zone B,40.7589,-73.9851,750,Commercial,Active,"DEV002,DEV006"
+geofence,3,Zone C,40.7505,-73.9934,600,Industrial,Active,"DEV003,DEV007"
+geofence,4,Zone D,40.7829,-73.9654,400,Residential,Pending,"DEV004"
