@@ -9,6 +9,12 @@ const Header = ({ currentUser, onLogout }) => {
     { id: 3, message: 'Monthly report generated successfully', type: 'success', time: '1 day ago' }
   ]);
 
+  // Debug logging
+  console.log('Header: currentUser:', currentUser);
+  console.log('Header: currentUser.level:', currentUser?.level);
+  console.log('Header: currentUser.fullName:', currentUser?.fullName);
+  console.log('Header: currentUser.email:', currentUser?.email);
+
   const handleLogout = () => {
     onLogout();
     setShowUserMenu(false);
@@ -24,6 +30,28 @@ const Header = ({ currentUser, onLogout }) => {
     }
   };
 
+  const getUserRoleIcon = (level) => {
+    if (!level) return '👤';
+    
+    switch (level.toLowerCase()) {
+      case 'admin': return '👑';
+      case 'fleetmanager': return '🚚';
+      case 'enduser': return '🏠';
+      default: return '👤';
+    }
+  };
+
+  const getUserRoleColor = (level) => {
+    if (!level) return 'default-role';
+    
+    switch (level.toLowerCase()) {
+      case 'admin': return 'admin-role';
+      case 'fleetmanager': return 'fleet-role';
+      case 'enduser': return 'user-role';
+      default: return 'default-role';
+    }
+  };
+
   return (
     <header className="header">
       <div className="header-left">
@@ -35,10 +63,12 @@ const Header = ({ currentUser, onLogout }) => {
       <div className="header-right">
         <div className="header-notifications">
           <button className="notification-btn">
-            🔔
-            {notifications.length > 0 && (
-              <span className="notification-badge">{notifications.length}</span>
-            )}
+            <div className="notification-icon-wrapper">
+              <span className="notification-icon">🔔</span>
+              {notifications.length > 0 && (
+                <span className="notification-badge">{notifications.length}</span>
+              )}
+            </div>
           </button>
           
           <div className="notifications-dropdown">
@@ -67,33 +97,73 @@ const Header = ({ currentUser, onLogout }) => {
             className="user-menu-btn"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            <span className="user-avatar">{currentUser.avatar}</span>
-            <span className="user-name">{currentUser.fullName}</span>
-            <span className="user-arrow">▼</span>
+            <div className="user-avatar-container">
+              <div className={`user-avatar ${getUserRoleColor(currentUser?.level)}`}>
+                {getUserRoleIcon(currentUser?.level)}
+              </div>
+              <div className="user-status-indicator"></div>
+            </div>
+            <div className="user-info-display">
+              <span className="user-name">{currentUser?.fullName || 'User'}</span>
+              <span className="user-role-label">{currentUser?.level || 'Unknown'}</span>
+            </div>
+            <span className={`user-arrow ${showUserMenu ? 'rotated' : ''}`}>▼</span>
           </button>
 
           {showUserMenu && (
             <div className="user-dropdown">
               <div className="user-dropdown-header">
-                <div className="user-info">
-                  <div className="user-full-name">{currentUser.fullName}</div>
-                  <div className="user-email">{currentUser.email}</div>
-                  <div className="user-role">{currentUser.role}</div>
+                <div className="user-profile-section">
+                  <div className={`user-avatar-large ${getUserRoleColor(currentUser?.level)}`}>
+                    {getUserRoleIcon(currentUser?.level)}
+                  </div>
+                  <div className="user-details">
+                    <div className="user-full-name">{currentUser?.fullName || 'User'}</div>
+                    <div className="user-email">{currentUser?.email || 'user@example.com'}</div>
+                    <div className={`user-role-badge ${getUserRoleColor(currentUser?.level)}`}>
+                      {currentUser?.level || 'Unknown'}
+                    </div>
+                  </div>
                 </div>
               </div>
+              
               <div className="user-dropdown-menu">
-                <button className="dropdown-item">
-                  👤 Profile
+                <button className="dropdown-item profile-item">
+                  <div className="item-icon">👤</div>
+                  <div className="item-content">
+                    <span className="item-title">Profile</span>
+                    <span className="item-description">View and edit your profile</span>
+                  </div>
+                  <div className="item-arrow">→</div>
                 </button>
-                <button className="dropdown-item">
-                  ⚙️ Settings
+                
+                <button className="dropdown-item settings-item">
+                  <div className="item-icon">⚙️</div>
+                  <div className="item-content">
+                    <span className="item-title">Settings</span>
+                    <span className="item-description">Customize your preferences</span>
+                  </div>
+                  <div className="item-arrow">→</div>
                 </button>
-                <button className="dropdown-item">
-                  🆘 Help
+                
+                <button className="dropdown-item help-item">
+                  <div className="item-icon">🆘</div>
+                  <div className="item-content">
+                    <span className="item-title">Help & Support</span>
+                    <span className="item-description">Get assistance and documentation</span>
+                  </div>
+                  <div className="item-arrow">→</div>
                 </button>
+                
                 <div className="dropdown-divider"></div>
-                <button className="dropdown-item logout-btn" onClick={handleLogout}>
-                  🚪 Sign Out
+                
+                <button className="dropdown-item logout-item" onClick={handleLogout}>
+                  <div className="item-icon">🚪</div>
+                  <div className="item-content">
+                    <span className="item-title">Sign Out</span>
+                    <span className="item-description">Securely log out of your account</span>
+                  </div>
+                  <div className="logout-arrow">↪</div>
                 </button>
               </div>
             </div>
