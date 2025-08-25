@@ -176,7 +176,7 @@ const DeviceProximity = ({ currentUser }) => {
   };
 
   return (
-    <div className="device-proximity">
+    <div className="device-proximity-content">
       <div className="content-header">
         <h1 className="content-title">Device Proximity Monitor</h1>
         <p className="content-subtitle">

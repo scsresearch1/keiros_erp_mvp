@@ -427,7 +427,7 @@
 
 /* Page Container */
 .page-container {
-  max-width: 1400px;
+  max-width: none; /* Remove fixed max-width to allow full expansion */
   margin: 0 auto;
   padding: 0 20px;
 }

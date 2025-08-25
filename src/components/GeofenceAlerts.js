@@ -179,7 +179,7 @@ const GeofenceAlerts = ({ currentUser }) => {
   const stats = getViolationStats();
 
   return (
-    <div className="geofence-alerts">
+    <div className="geofence-content">
       <div className="content-header">
         <h1 className="content-title" title="Monitor and manage geofence boundary violations in real-time">Geofence Alerts & Violations</h1>
         <p className="content-subtitle" title="Track device movements and respond to boundary violations">

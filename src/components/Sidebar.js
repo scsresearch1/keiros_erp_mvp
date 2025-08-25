@@ -1,14 +1,24 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { getUserLevel } from '../data/demoUsers';
 import './Sidebar.css';
 
 const Sidebar = ({ currentUser }) => {
+  const location = useLocation();
+  
   // Check if user is an end user
   const isEndUser = currentUser.level === 'enduser';
   
   // Check if user is a fleet manager
   const isFleetManager = currentUser.level === 'fleetmanager';
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Sidebar: Location changed to:', location.pathname);
+    console.log('Sidebar: Current DOM element:', document.querySelector('.sidebar'));
+    console.log('Sidebar: Sidebar width:', document.querySelector('.sidebar')?.offsetWidth);
+    console.log('Sidebar: Sidebar classes:', document.querySelector('.sidebar')?.className);
+  }, [location.pathname]);
 
   // Different navigation items for different user types
   const navigationItems = isEndUser ? [
@@ -72,6 +82,7 @@ const Sidebar = ({ currentUser }) => {
 
   console.log('Sidebar: currentUser:', currentUser);
   console.log('Sidebar: navigationItems:', navigationItems);
+  console.log('Sidebar: Current path:', location.pathname);
 
   return (
     <div className="sidebar">

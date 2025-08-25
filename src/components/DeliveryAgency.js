@@ -246,12 +246,10 @@ const DeliveryAgency = ({ currentUser }) => {
   const complianceByStatus = getComplianceByStatus();
 
   return (
-    <div className="delivery-agency">
+    <div className="delivery-agency-content">
       <div className="content-header">
-        <h1 className="content-title">🚚 Delivery Agency Dashboard</h1>
-        <p className="content-subtitle">
-          Fleet management, package tracking, and compliance monitoring for logistics partners
-        </p>
+        <h1 className="content-title">Fleet Management Dashboard</h1>
+        <p className="content-subtitle">Comprehensive fleet monitoring and logistics management</p>
       </div>
 
       {/* Fleet Overview Stats */}
@@ -279,7 +277,7 @@ const DeliveryAgency = ({ currentUser }) => {
                       <span className={`status-badge ${device.status.toLowerCase()}`}>
                         {device.status}
                       </span>
-          </div>
+            </div>
                     <div className="device-details">
                       <p>📍 {device.location.address}</p>
                       <p>🔋 Battery: {device.battery}%</p>
@@ -289,7 +287,7 @@ const DeliveryAgency = ({ currentUser }) => {
                             📦 {mockPackagesData.find(p => p.id === device.currentPackage)?.trackingNumber}
                           </p>
                         )}
-            </div>
+          </div>
                     {canManageFleet && (
                       <div className="device-actions">
                         {!device.currentPackage ? (
@@ -313,9 +311,9 @@ const DeliveryAgency = ({ currentUser }) => {
                             Unbind Package
                           </button>
                         )}
-          </div>
-                    )}
             </div>
+                    )}
+          </div>
                 ))}
             </div>
           </div>

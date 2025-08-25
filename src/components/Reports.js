@@ -410,7 +410,7 @@ const Reports = ({ currentUser }) => {
   };
 
   return (
-    <div className="reports-container">
+    <div className="reports-content">
       <div className="reports-header">
         <h1>📊 Fleet Reports & Analytics</h1>
         <p>Comprehensive reporting and analytics for fleet management</p>

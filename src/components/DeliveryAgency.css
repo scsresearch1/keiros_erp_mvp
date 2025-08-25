@@ -1,25 +1,5 @@
-.delivery-agency {
-  padding: 25px;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  min-height: 100vh;
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
-
-.delivery-agency::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-}
+/* Enhanced Delivery Agency Component Styles */
+/* Removed conflicting .delivery-agency styles - now uses Dashboard layout */
 
 .content-header {
   margin-bottom: 30px;
@@ -585,9 +565,9 @@
   
   .search-section {
     min-width: auto;
-  }
-  
-  .action-buttons {
+}
+
+.action-buttons {
     justify-content: center;
   }
   
@@ -1261,7 +1241,7 @@
 
 .timeline-time {
   color: #00d4ff;
-  font-size: 12px;
+    font-size: 12px;
   font-weight: 600;
   margin-bottom: 5px;
   text-transform: uppercase;

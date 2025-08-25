@@ -175,21 +175,7 @@
 }
 
 /* Overview Component Styles */
-.overview {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  min-height: 100vh;
-  color: #e0e0e0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.overview-container {
-  padding: 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  min-height: calc(100vh - 80px);
-}
+/* Removed conflicting .overview and .overview-container styles - now uses Dashboard layout */
 
 .overview-header {
   margin-bottom: 32px;
@@ -1091,51 +1077,336 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .overview-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .content-section {
+    padding: 1.5rem;
+  }
+  
+  .content-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+  
+  .section-title {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+  }
+}
+
 @media (max-width: 1024px) {
   .overview-content {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  
+  .content-section {
+    padding: 1.25rem;
+  }
+  
+  .stat-card {
+    padding: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+  
+  .stat-label {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
   }
 }
 
 @media (max-width: 768px) {
   .overview-container {
-    padding: 16px;
+    padding: 1rem;
+  }
+  
+  .overview-content {
+    gap: 1rem;
   }
   
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 1rem;
   }
   
   .stat-card {
-    padding: 24px;
+    padding: 1.25rem;
   }
   
   .content-section {
-    padding: 24px;
+    padding: 1.25rem;
   }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+  
+  .content-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  
+  .section-title {
+    font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+  }
+  
+  .stat-value {
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+  }
+  
+  .stat-label {
+    font-size: clamp(0.8rem, 3vw, 0.875rem);
   }
   
   .actions-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   
   .status-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .content-title {
-    font-size: 2rem;
+    gap: 1rem;
   }
   
   .btn {
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    min-width: 100px;
+  }
+  
+  .btn-sm {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .activity-item {
+    padding: 1rem;
+  }
+  
+  .activity-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .activity-content {
+    gap: 0.75rem;
+  }
+  
+  .activity-title {
+    font-size: 0.875rem;
+  }
+  
+  .activity-description {
+    font-size: 0.8rem;
+  }
+  
+  .activity-time {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-container {
+    padding: 0.75rem;
+  }
+  
+  .overview-content {
+    gap: 0.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .content-section {
+    padding: 1rem;
+  }
+  
+  .content-title {
+    font-size: clamp(1.25rem, 6vw, 1.75rem);
+  }
+  
+  .section-title {
+    font-size: clamp(1rem, 4vw, 1.125rem);
+  }
+  
+  .stat-value {
+    font-size: clamp(1.125rem, 6vw, 1.5rem);
+  }
+  
+  .stat-label {
+    font-size: clamp(0.75rem, 3.5vw, 0.8rem);
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
     min-width: 80px;
+    width: 100%;
+  }
+  
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  .activity-item {
+    padding: 0.75rem;
+  }
+  
+  .activity-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  .activity-content {
+    gap: 0.5rem;
+  }
+  
+  .activity-title {
+    font-size: 0.8rem;
+  }
+  
+  .activity-description {
+    font-size: 0.75rem;
+  }
+  
+  .activity-time {
+    font-size: 0.7rem;
+  }
+  
+  .loading-container {
+    height: 300px;
+    font-size: 1.2rem;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Landscape Mobile Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .overview-container {
+    padding: 0.75rem;
+  }
+  
+  .overview-content {
+    gap: 0.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .content-section {
+    padding: 0.75rem;
+  }
+  
+  .content-title {
+    font-size: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+  }
+  
+  .activity-item {
+    padding: 0.75rem;
+  }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+  .stat-card:hover,
+  .activity-item:hover,
+  .btn:hover {
+    transform: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+  }
+  
+  /* Increase touch targets */
+  .stat-card,
+  .activity-item,
+  .btn {
+    min-height: 44px;
+  }
+  
+  .stat-card {
+    cursor: pointer;
+  }
+}
+
+/* High DPI Display Optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .stat-card,
+  .content-section,
+  .activity-item {
+    border-width: 0.5px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .overview-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-card,
+  .content-section,
+  .activity-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .btn {
+    display: none;
   }
 }

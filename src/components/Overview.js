@@ -36,7 +36,7 @@ const Overview = ({ currentUser }) => {
   }, []);
 
   return (
-    <div className="overview-container">
+    <div className="overview-content">
       <div className="overview-header">
         <h1>Admin Dashboard</h1>
         <p>Welcome back, {currentUser?.username || 'Administrator'}</p>

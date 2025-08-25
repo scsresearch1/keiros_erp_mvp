@@ -577,15 +577,75 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .header {
+    padding: 0 1.5rem;
+  }
+  
+  .header-left {
+    flex: 1;
+  }
+  
+  .header-right {
+    gap: 1rem;
+  }
+  
+  .user-menu-btn {
+    padding: 0.75rem 1rem;
+  }
+  
+  .user-info-display {
+    gap: 0.5rem;
+  }
+  
+  .user-name {
+    font-size: 0.875rem;
+  }
+  
+  .user-role-label {
+    font-size: 0.75rem;
+  }
+}
+
 @media (max-width: 768px) {
   .header {
-    padding: 0 20px;
+    padding: 0 1rem;
     height: 60px;
+  }
+  
+  .header-left {
+    flex: 1;
+  }
+  
+  .header-right {
+    gap: 0.75rem;
+  }
+  
+  .breadcrumb-item {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .notification-btn {
+    padding: 0.5rem;
+  }
+  
+  .notification-icon {
+    font-size: 1.125rem;
   }
   
   .user-menu-btn {
     min-width: auto;
-    padding: 10px 15px;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .user-avatar-container {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .user-avatar {
+    font-size: 1rem;
   }
   
   .user-name {
@@ -596,34 +656,274 @@
     display: none;
   }
   
+  .user-arrow {
+    font-size: 0.75rem;
+  }
+  
   .user-dropdown {
     min-width: 280px;
-    right: -20px;
+    right: -1rem;
+    top: calc(100% + 0.5rem);
   }
   
   .notifications-dropdown {
     min-width: 300px;
-    right: -20px;
+    right: -1rem;
+    top: calc(100% + 0.5rem);
+  }
+  
+  .user-dropdown-header {
+    padding: 1rem;
+  }
+  
+  .user-profile-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .user-avatar-large {
+    font-size: 2.5rem;
+    align-self: center;
+  }
+  
+  .user-details {
+    text-align: center;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .item-icon {
+    font-size: 1.125rem;
+  }
+  
+  .item-title {
+    font-size: 0.875rem;
+  }
+  
+  .item-description {
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .header {
-    padding: 0 15px;
+    padding: 0 0.75rem;
+    height: 56px;
+  }
+  
+  .header-right {
+    gap: 0.5rem;
   }
   
   .breadcrumb-item {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .notification-btn {
+    padding: 0.4rem;
+  }
+  
+  .notification-icon {
     font-size: 1rem;
-    padding: 6px 12px;
+  }
+  
+  .notification-badge {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.3rem;
+    min-width: 16px;
+  }
+  
+  .user-menu-btn {
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .user-avatar-container {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .user-avatar {
+    font-size: 0.875rem;
+  }
+  
+  .user-arrow {
+    font-size: 0.7rem;
   }
   
   .user-dropdown {
     min-width: 260px;
-    right: -15px;
+    right: -0.75rem;
+    max-width: calc(100vw - 1.5rem);
   }
   
   .notifications-dropdown {
     min-width: 280px;
-    right: -15px;
+    right: -0.75rem;
+    max-width: calc(100vw - 1.5rem);
+  }
+  
+  .user-dropdown-header {
+    padding: 0.75rem;
+  }
+  
+  .user-avatar-large {
+    font-size: 2rem;
+  }
+  
+  .user-full-name {
+    font-size: 1rem;
+  }
+  
+  .user-email {
+    font-size: 0.8rem;
+  }
+  
+  .user-role-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .dropdown-item {
+    padding: 0.6rem 0.75rem;
+  }
+  
+  .item-icon {
+    font-size: 1rem;
+  }
+  
+  .item-title {
+    font-size: 0.8rem;
+  }
+  
+  .item-description {
+    font-size: 0.7rem;
+  }
+  
+  .notifications-header h3 {
+    font-size: 1rem;
+  }
+  
+  .mark-all-read {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .notification-item {
+    padding: 0.75rem;
+  }
+  
+  .notification-icon {
+    font-size: 1rem;
+  }
+  
+  .notification-message {
+    font-size: 0.8rem;
+  }
+  
+  .notification-time {
+    font-size: 0.7rem;
+  }
+}
+
+/* Landscape Mobile Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header {
+    height: 50px;
+    padding: 0 1rem;
+  }
+  
+  .user-dropdown,
+  .notifications-dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .user-dropdown-header {
+    padding: 0.75rem;
+  }
+  
+  .user-profile-section {
+    flex-direction: row;
+    text-align: left;
+    gap: 0.75rem;
+  }
+  
+  .user-avatar-large {
+    font-size: 2rem;
+  }
+  
+  .user-details {
+    text-align: left;
+  }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+  .notification-btn:hover,
+  .user-menu-btn:hover,
+  .dropdown-item:hover,
+  .mark-all-read:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Increase touch targets */
+  .notification-btn,
+  .user-menu-btn,
+  .dropdown-item,
+  .mark-all-read {
+    min-height: 44px;
+  }
+  
+  .user-avatar-container {
+    cursor: pointer;
+  }
+  
+  .notification-icon-wrapper {
+    cursor: pointer;
+  }
+}
+
+/* High DPI Display Optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .header {
+    border-bottom-width: 0.5px;
+  }
+  
+  .user-dropdown,
+  .notifications-dropdown {
+    border-width: 0.5px;
+  }
+  
+  .dropdown-item {
+    border-bottom-width: 0.5px;
+  }
+  
+  .notification-item {
+    border-left-width: 2px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .header {
+    background: white !important;
+    color: black !important;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .notification-btn,
+  .user-menu-btn {
+    display: none;
+  }
+  
+  .breadcrumb-item {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #ccc;
   }
 }

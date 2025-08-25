@@ -479,7 +479,7 @@ Battery: ${diagnostics.batteryLevel}%
   };
 
   return (
-    <div className="devices">
+    <div className="devices-content">
       <div className="content-header">
         <div className="header-left">
           <h1 className="content-title" title="Main administration panel for managing all system assets">Asset Management - Super Admin</h1>

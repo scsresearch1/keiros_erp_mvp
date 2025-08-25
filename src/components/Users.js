@@ -158,7 +158,7 @@ const Users = ({ currentUser }) => {
   const stats = getUserStats();
 
   return (
-    <div className="users">
+    <div className="users-content">
       <div className="content-header">
         <h1 className="content-title" title="Manage system users and their device tracking permissions">User Management</h1>
         <p className="content-subtitle" title="Create, edit, and manage user accounts with role-based access control">

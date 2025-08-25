@@ -27,7 +27,7 @@ const Settings = ({ currentUser }) => {
 
   if (!canManageSettings) {
     return (
-      <div className="settings">
+      <div className="settings-content">
         <div className="empty-state">
           <div className="empty-state-icon">🚫</div>
           <div className="empty-state-title">Access Denied</div>
@@ -92,7 +92,7 @@ const Settings = ({ currentUser }) => {
   };
 
   return (
-    <div className="settings">
+    <div className="settings-content">
       <div className="content-header">
         <div className="header-content">
           <h1 className="content-title">System Settings</h1>
