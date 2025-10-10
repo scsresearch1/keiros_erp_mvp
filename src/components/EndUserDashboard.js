@@ -8,7 +8,6 @@ const EndUserDashboard = ({ currentUser }) => {
   const [showProximity, setShowProximity] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [geofenceAlerts, setGeofenceAlerts] = useState([]);
-  const [showCurrentLocation, setShowCurrentLocation] = useState(false);
 
   // Initialize user devices with real coordinates and data
   useEffect(() => {
@@ -223,7 +222,6 @@ const EndUserDashboard = ({ currentUser }) => {
             accuracy: accuracy
           };
           setUserLocation(locationInfo);
-          setShowCurrentLocation(true);
           
           console.log('Your current location:', latitude, longitude);
           console.log('Accuracy:', accuracy, 'meters');
