@@ -1,0 +1,15 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: keiros-erp
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npx serve -s build -l 3000
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REACT_APP_FIREBASE_DATABASE_URL
+        sync: false  # Set this in Render dashboard
+      - key: REACT_APP_FIREBASE_DATABASE_SECRET
+        sync: false  # Set this in Render dashboard
+

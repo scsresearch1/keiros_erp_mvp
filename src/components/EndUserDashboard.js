@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './EndUserDashboard.css';
+import firebaseService from '../services/firebaseService';
 
 const EndUserDashboard = ({ currentUser }) => {
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -8,59 +9,100 @@ const EndUserDashboard = ({ currentUser }) => {
   const [showProximity, setShowProximity] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [geofenceAlerts, setGeofenceAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const selectedDeviceRef = useRef(null);
 
-  // Initialize user devices with real coordinates and data
+  // Fetch devices from Firebase
   useEffect(() => {
-    const mockDevices = [
-      {
-        id: 'dev_001',
-        name: 'Main Office Door Plate',
-        type: 'Door Number Plate',
-        location: { 
-          lat: userLocation?.lat || 17.5212, 
-          lng: userLocation?.lng || 78.3964, 
-          address: userLocation ? `Current Location (${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)})` : 'Main Office Building, Hyderabad, Telangana 500001',
-          accuracy: userLocation?.accuracy || 5
-        },
-        status: 'Active',
-        signal: 85,
-        lastSeen: new Date(), // Current time (0 minutes ago)
-        lastUpdate: new Date() // Current time (0 minutes ago)
-      },
-      {
-        id: 'dev_002',
-        name: 'Branch Office Door Plate',
-        type: 'Door Number Plate',
-        location: { 
-          lat: 18.1203, 
-          lng: 78.8906, 
-          address: 'Branch Office Complex, Narsapur, Medak District, Telangana 502313',
-          accuracy: 3
-        },
-        status: 'Offline',
-        signal: 0,
-        lastSeen: new Date(Date.now() - 86400000), // 24 hours ago
-        lastUpdate: new Date(Date.now() - 86400000) // 24 hours ago
-      },
-      {
-        id: 'dev_003',
-        name: 'Warehouse Door Plate',
-        type: 'Door Number Plate',
-        location: { 
-          lat: 18.1203, 
-          lng: 78.8906, 
-          address: 'Warehouse Facility, Narsapur, Medak District, Telangana 502313',
-          accuracy: 8
-        },
-        status: 'Offline',
-        signal: 0,
-        lastSeen: new Date(Date.now() - 86400000), // 24 hours ago
-        lastUpdate: new Date(Date.now() - 86400000) // 24 hours ago
+    const loadDevices = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('[Dashboard] Loading devices from Firebase...');
+        
+        // Test connection first
+        const isConnected = await firebaseService.testConnection();
+        if (!isConnected) {
+          throw new Error('Cannot connect to Firebase. Please check your network and credentials.');
+        }
+        
+        const devices = await firebaseService.getDevices();
+        console.log('[Dashboard] Raw devices from Firebase:', devices);
+        
+        const normalizedDevices = firebaseService.normalizeDevices(devices);
+        console.log('[Dashboard] Normalized devices:', normalizedDevices);
+        
+        if (normalizedDevices.length > 0) {
+          setUserDevices(normalizedDevices);
+          // Only set selected device if not already set
+          setSelectedDevice(prev => prev || normalizedDevices[0]);
+          setError(null); // Clear any previous errors
+        } else {
+          console.warn('[Dashboard] No devices found in Firebase');
+          setError('No devices found in Firebase database. Please add devices to your database.');
+        }
+      } catch (err) {
+        console.error('[Dashboard] Error loading devices from Firebase:', err);
+        setError(err.message || 'Failed to load devices from Firebase. Please check your connection and Firebase credentials.');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setUserDevices(mockDevices);
-    setSelectedDevice(mockDevices[0]);
-  }, [userLocation]);
+    };
+
+    loadDevices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // Update ref when selectedDevice changes
+  useEffect(() => {
+    selectedDeviceRef.current = selectedDevice;
+  }, [selectedDevice]);
+
+  // Set up real-time subscription to Firebase
+  useEffect(() => {
+    if (loading) return;
+
+    console.log('Setting up Firebase real-time subscription...');
+    
+    const unsubscribe = firebaseService.subscribeToDevices((devices) => {
+      console.log('Received device update from Firebase:', devices);
+      const normalizedDevices = firebaseService.normalizeDevices(devices);
+      
+      // Update devices
+      setUserDevices(prevDevices => {
+        return normalizedDevices;
+      });
+      
+      // Update selected device if needed
+      setSelectedDevice(prevSelected => {
+        const currentSelected = selectedDeviceRef.current;
+        
+        if (!currentSelected && normalizedDevices.length > 0) {
+          return normalizedDevices[0];
+        }
+        
+        if (currentSelected && normalizedDevices.length > 0) {
+          const updatedSelected = normalizedDevices.find(d => d.id === currentSelected.id);
+          if (updatedSelected) {
+            return updatedSelected;
+          }
+          // If selected device no longer exists, select first device
+          if (normalizedDevices.length > 0) {
+            return normalizedDevices[0];
+          }
+        }
+        
+        return prevSelected;
+      });
+    }, 30000); // Poll every 30 seconds
+
+    return () => {
+      console.log('Cleaning up Firebase subscription...');
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   // Get user's real location using GPS
   useEffect(() => {
@@ -93,7 +135,7 @@ const EndUserDashboard = ({ currentUser }) => {
 
   // Update active device location to match user's current location
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation && userDevices.length > 0) {
       setUserDevices(prev => 
         prev.map(device => 
           device.status === 'Active' 
@@ -110,31 +152,36 @@ const EndUserDashboard = ({ currentUser }) => {
         )
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLocation]);
 
-  // Simulate real-time device updates
+  // Load geofence alerts from Firebase
   useEffect(() => {
-    const interval = setInterval(() => {
-      setUserDevices(prev => 
-        prev.map(device => {
-          if (device.status === 'Active') {
-            // Only update active device
-            return {
-              ...device,
-              lastSeen: new Date(),
-              lastUpdate: new Date(),
-              signal: Math.max(0, device.signal - Math.random() * 0.1)
-            };
-          } else {
-            // Don't update offline devices - keep their original timestamps
-            return device;
-          }
-        })
-      );
-    }, 30000); // Update every 30 seconds
+    const loadAlerts = async () => {
+      try {
+        const alerts = await firebaseService.getGeofenceAlerts();
+        
+        // Normalize alert timestamps
+        const normalizedAlerts = alerts.map(alert => ({
+          ...alert,
+          timestamp: alert.timestamp 
+            ? (typeof alert.timestamp === 'string' ? new Date(alert.timestamp) : new Date(alert.timestamp))
+            : new Date()
+        }));
+        
+        setGeofenceAlerts(normalizedAlerts.slice(0, 10)); // Keep last 10 alerts
+      } catch (err) {
+        console.error('Error loading geofence alerts:', err);
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, []);
+    if (!loading) {
+      loadAlerts();
+      // Refresh alerts periodically
+      const interval = setInterval(loadAlerts, 30000); // Every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   // Check geofence violations in real-time
   useEffect(() => {
@@ -339,32 +386,52 @@ const EndUserDashboard = ({ currentUser }) => {
     }
   };
 
-  const refreshDeviceLocations = () => {
-    // Simulate refreshing device locations
-    setUserDevices(prev => 
-      prev.map(device => {
-        if (device.status === 'Active') {
-          // For active device, update to current user location
-          return {
-            ...device,
-            location: {
-              lat: userLocation?.lat || device.location.lat,
-              lng: userLocation?.lng || device.location.lng,
-              address: userLocation ? `Current Location (${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)})` : device.location.address,
-              accuracy: userLocation?.accuracy || device.location.accuracy
-            },
-            lastUpdate: new Date(),
-            signal: Math.max(0, device.signal + (Math.random() - 0.5) * 2)
-          };
-        } else {
-          // For offline devices, don't update timestamps - keep them as 24 hours ago
-          return {
-            ...device,
-            signal: Math.max(0, device.signal + (Math.random() - 0.5) * 2)
-          };
+  const refreshDeviceLocations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Refreshing devices from Firebase...');
+      
+      const devices = await firebaseService.getDevices();
+      const normalizedDevices = firebaseService.normalizeDevices(devices);
+      
+      console.log('Refreshed devices from Firebase:', normalizedDevices);
+      
+      if (normalizedDevices.length > 0) {
+        setUserDevices(normalizedDevices);
+        
+        // Update selected device if it exists
+        if (selectedDevice) {
+          const updatedSelected = normalizedDevices.find(d => d.id === selectedDevice.id);
+          if (updatedSelected) {
+            setSelectedDevice(updatedSelected);
+          } else if (normalizedDevices.length > 0) {
+            setSelectedDevice(normalizedDevices[0]);
+          }
+        } else if (normalizedDevices.length > 0) {
+          setSelectedDevice(normalizedDevices[0]);
         }
-      })
-    );
+      }
+      
+      // Also refresh alerts
+      try {
+        const alerts = await firebaseService.getGeofenceAlerts();
+        const normalizedAlerts = alerts.map(alert => ({
+          ...alert,
+          timestamp: alert.timestamp 
+            ? (typeof alert.timestamp === 'string' ? new Date(alert.timestamp) : new Date(alert.timestamp))
+            : new Date()
+        }));
+        setGeofenceAlerts(normalizedAlerts.slice(0, 10));
+      } catch (alertErr) {
+        console.error('Error refreshing alerts:', alertErr);
+      }
+    } catch (err) {
+      console.error('Error refreshing devices:', err);
+      setError('Failed to refresh devices. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -408,13 +475,53 @@ const EndUserDashboard = ({ currentUser }) => {
           <div className="devices-section">
             <div className="section-header">
               <h3 className="section-title">My Devices ({userDevices.length})</h3>
-              <button className="refresh-btn" onClick={refreshDeviceLocations}>
-                🔄 Refresh
+              <button className="refresh-btn" onClick={refreshDeviceLocations} disabled={loading}>
+                {loading ? '⏳ Loading...' : '🔄 Refresh'}
               </button>
             </div>
             <p className="section-description">Track your Keiros door number plate devices in real-time</p>
             
+            {error && (
+              <div style={{ 
+                padding: '15px', 
+                margin: '10px 0', 
+                backgroundColor: '#fee', 
+                color: '#c33',
+                borderRadius: '4px',
+                fontSize: '14px',
+                border: '1px solid #fcc'
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>⚠️ Error</div>
+                <div>{error}</div>
+                <div style={{ marginTop: '10px', fontSize: '12px', color: '#999' }}>
+                  Check browser console (F12) for detailed error logs.
+                  <br />
+                  Ensure your Firebase database has a "devices" path with device data.
+                </div>
+              </div>
+            )}
+            
+            {loading && userDevices.length === 0 && (
+              <div style={{ 
+                padding: '20px', 
+                textAlign: 'center',
+                color: '#666'
+              }}>
+                <div>⏳ Loading devices from Firebase...</div>
+              </div>
+            )}
+            
             <div className="devices-list">
+              {userDevices.length === 0 && !loading && (
+                <div style={{ 
+                  padding: '20px', 
+                  textAlign: 'center',
+                  color: '#666'
+                }}>
+                  <div>📭 No devices found</div>
+                  <small>Add devices to your Firebase database</small>
+                </div>
+              )}
               {userDevices.map((device) => (
                 <div 
                   key={device.id} 
@@ -541,8 +648,8 @@ const EndUserDashboard = ({ currentUser }) => {
           <div className="device-details-section">
             <div className="section-header">
               <h3 className="section-title">Device Details</h3>
-              <button className="refresh-btn" onClick={refreshDeviceLocations}>
-                🔄 Refresh
+              <button className="refresh-btn" onClick={refreshDeviceLocations} disabled={loading}>
+                {loading ? '⏳ Loading...' : '🔄 Refresh'}
               </button>
             </div>
             
