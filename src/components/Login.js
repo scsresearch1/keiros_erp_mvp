@@ -1,333 +1,287 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import firebaseService from '../services/firebaseService';
 import './Login.css';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showDemoUsers, setShowDemoUsers] = useState(false);
   const [devices, setDevices] = useState([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
-  const { login } = useAuth();
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [deviceData, setDeviceData] = useState(null);
+  const [loadingDeviceData, setLoadingDeviceData] = useState(false);
 
-  // Fetch devices from Firebase on component mount
+  // Fetch devices from Firebase on component mount - RAW DATA ONLY
   useEffect(() => {
     const loadDevices = async () => {
       try {
         setDevicesLoading(true);
-        const fetchedDevices = await firebaseService.getDevices();
-        const normalizedDevices = firebaseService.normalizeDevices(fetchedDevices);
-        setDevices(normalizedDevices);
+        // Fetch raw root data from Firebase
+        const rootData = await firebaseService.fetchData('');
+        
+        if (!rootData || typeof rootData !== 'object') {
+          setDevices([]);
+          return;
+        }
+        
+        // Get MAC addresses (device IDs) from root
+        const macAddresses = Object.keys(rootData);
+        
+        // For each MAC address, get basic info without normalization
+        const devicesList = macAddresses.map(macAddress => {
+          const deviceData = rootData[macAddress];
+          const timestamps = Object.keys(deviceData || {}).sort().reverse();
+          const latestTimestamp = timestamps[0];
+          const latestData = latestTimestamp ? deviceData[latestTimestamp] : null;
+          
+          return {
+            id: macAddress,
+            macAddress: macAddress,
+            name: `Device ${macAddress}`,
+            status: latestData ? 'Active' : 'Offline',
+            latestTimestamp: latestTimestamp,
+            latestData: latestData,
+            entryCount: timestamps.length,
+            lastUpdate: latestTimestamp ? firebaseService.parseTimestamp(latestTimestamp) : null,
+            location: latestData ? {
+              lat: latestData.latitude && latestData.latitude !== 'N/a' ? parseFloat(latestData.latitude) : null,
+              lng: latestData.longitude && latestData.longitude !== 'N/a' ? parseFloat(latestData.longitude) : null,
+              altitude: latestData.altitude && latestData.altitude !== 'N/a' ? parseFloat(latestData.altitude) : null
+            } : null
+          };
+        });
+        
+        setDevices(devicesList);
       } catch (err) {
-        console.error('[Login] Error loading devices:', err);
-        // Don't show error to user on landing page, just log it
+        console.error('[Landing] Error loading devices:', err);
+        setDevices([]);
       } finally {
         setDevicesLoading(false);
       }
     };
 
     loadDevices();
+    
+    // Refresh devices every 30 seconds
+    const interval = setInterval(loadDevices, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    
+  // Fetch full Firebase data for a device when clicked
+  const handleDeviceClick = async (device) => {
     try {
-      const result = await login(username, password);
+      setLoadingDeviceData(true);
+      setSelectedDevice(device);
       
-      if (result.success) {
-        // Login successful - AuthContext will handle the redirect
-      } else {
-        setError(result.error || 'Login failed');
-      }
+      // Fetch all timestamped entries for this device from Firebase
+      const macAddress = device.id || device.macAddress || device.deviceId;
+      const rawData = await firebaseService.fetchData(macAddress);
+      
+      // Get all timestamps
+      const timestamps = rawData ? Object.keys(rawData).sort().reverse() : [];
+      
+      // Build complete device data object
+      const completeDeviceData = {
+        macAddress: macAddress,
+        deviceInfo: device,
+        timestamps: timestamps.map(ts => ({
+          timestamp: ts,
+          data: rawData[ts],
+          parsedDate: firebaseService.parseTimestamp(ts)
+        })),
+        totalEntries: timestamps.length,
+        latestEntry: timestamps.length > 0 ? {
+          timestamp: timestamps[0],
+          data: rawData[timestamps[0]],
+          parsedDate: firebaseService.parseTimestamp(timestamps[0])
+        } : null
+      };
+      
+      setDeviceData(completeDeviceData);
     } catch (err) {
-      setError('An unexpected error occurred during login');
+      console.error('[Landing] Error loading device data:', err);
+      setDeviceData({ error: 'Failed to load device data' });
     } finally {
-      setLoading(false);
+      setLoadingDeviceData(false);
     }
   };
 
+  const closeDeviceModal = () => {
+    setSelectedDevice(null);
+    setDeviceData(null);
+  };
+
   return (
-    <div className="login-container">
-      {/* Modern Background */}
-      <div className="login-background">
+    <div className="landing-container">
+      {/* Background */}
+      <div className="landing-background">
         <div className="background-pattern"></div>
         <div className="background-overlay"></div>
       </div>
 
-      {/* 3x1 Layout Container */}
-      <div className="login-layout">
-        {/* Left Image Panel */}
-        <div className="image-panel left-panel">
-          <div className="image-container">
-            <img 
-              src="/branding/holding.png" 
-              alt="Keiros Holding" 
-              className="panel-image"
-              onError={(e) => {
-                console.error('Left image failed to load');
-                e.target.style.display = 'none';
-                e.target.nextElementSibling.style.display = 'flex';
-              }}
-            />
-            <div className="image-fallback left-fallback">
-              <div className="fallback-content">
-                <div className="fallback-icon">🏢</div>
-                <h3>Keiros Holding</h3>
-                <p>Enterprise Solutions</p>
-              </div>
-            </div>
-          </div>
-          <div className="panel-overlay">
-            <div className="brand-info">
-              <h2>Enterprise Device Management</h2>
-              <p>Next-generation IoT solutions for modern businesses</p>
-            </div>
-          </div>
+      {/* Main Content - Only Devices */}
+      <div className="landing-content">
+        <div className="landing-header">
+          <h1 className="landing-title">Keiros Device Tracking</h1>
+          <p className="landing-subtitle">Real-time device monitoring from Firebase</p>
         </div>
 
-        {/* Center Login Panel */}
-        <div className="login-panel">
-          <div className="login-content">
-            {/* Logo Section */}
-            <div className="logo-section">
-              <div className="logo-container">
-                <img 
-                  src="/branding/app_photo.png" 
-                  alt="Keiros ERP" 
-                  className="main-logo"
-                  onError={(e) => {
-                    console.error('Logo failed to load, showing fallback');
-                    e.target.style.display = 'none';
-                    document.querySelector('.logo-fallback').style.display = 'flex';
-                  }}
-                />
-                <div className="logo-fallback">
-                  <div className="logo-symbol">K</div>
-                </div>
-              </div>
-              <h1 className="brand-title">Keiros ERP</h1>
-              <p className="brand-subtitle">Sign in to your workspace</p>
-            </div>
-
-            {/* Login Form */}
-            <div className="form-container">
-              <form onSubmit={handleSubmit} className="login-form">
-                <div className="form-group">
-                  <label htmlFor="username">Username</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="text"
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Enter your username"
-                      required
-                      disabled={loading}
-                      className="form-input"
-                    />
-                    <div className="input-focus-border"></div>
+        {devicesLoading ? (
+          <div className="devices-loading-full">
+            <div className="spinner-large"></div>
+            <span>Loading devices from Firebase...</span>
+          </div>
+        ) : devices.length > 0 ? (
+          <div className="devices-grid-landing">
+            {devices.map((device) => (
+              <div 
+                key={device.id || device.macAddress || device.deviceId} 
+                className="device-card-landing-clickable"
+                onClick={() => handleDeviceClick(device)}
+              >
+                <div className="device-card-header">
+                  <div className="device-icon-large-landing">
+                    {device.status === 'Active' ? '🟢' : '🔴'}
+                  </div>
+                  <div className="device-name-large-landing">
+                    {device.name || device.macAddress || device.id}
                   </div>
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="password"
-                      id="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                      disabled={loading}
-                      className="form-input"
-                    />
-                    <div className="input-focus-border"></div>
+                <div className="device-card-body">
+                  <div className="device-status-landing">
+                    <span className={`status-badge-landing ${(device.status || 'Offline').toLowerCase()}`}>
+                      {device.status || 'Offline'}
+                    </span>
                   </div>
-                </div>
-
-                {error && (
-                  <div className="error-message">
-                    <div className="error-icon">⚠️</div>
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <button type="submit" className="login-button" disabled={loading}>
-                  {loading ? (
-                    <div className="loading-state">
-                      <div className="spinner"></div>
-                      <span>Signing In...</span>
+                  {device.location && device.location.lat !== null && device.location.lng !== null && (
+                    <div className="device-location-full">
+                      <span className="location-label">Location:</span>
+                      <span className="location-value">
+                        {device.location.lat.toFixed(6)}, {device.location.lng.toFixed(6)}
+                      </span>
                     </div>
-                  ) : (
-                    <>
-                      <span>Sign In</span>
-                      <div className="button-arrow">→</div>
-                    </>
                   )}
-                </button>
-              </form>
-
-              {/* Demo Users Toggle */}
-              <div className="demo-section">
-                <button
-                  type="button"
-                  className="demo-toggle"
-                  onClick={() => setShowDemoUsers(!showDemoUsers)}
-                >
-                  {showDemoUsers ? 'Hide Demo Users' : 'Show Demo Users'}
-                </button>
-
-                {/* Demo Users */}
-                {showDemoUsers && (
-                  <div className="demo-users">
-                    <h3>Demo Access</h3>
-                    <div className="demo-grid">
-                      <div className="demo-card admin">
-                        <div className="demo-header">
-                          <div className="role-icon">👑</div>
-                          <h4>Super Admin</h4>
-                        </div>
-                        <div className="demo-credentials">
-                          <div className="credential">
-                            <span>Username:</span>
-                            <code>admin</code>
-                          </div>
-                          <div className="credential">
-                            <span>Password:</span>
-                            <code>admin123</code>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="demo-card fleet">
-                        <div className="demo-header">
-                          <div className="role-icon">🚚</div>
-                          <h4>Fleet Manager</h4>
-                        </div>
-                        <div className="demo-credentials">
-                          <div className="credential">
-                            <span>Username:</span>
-                            <code>fleetmanager</code>
-                          </div>
-                          <div className="credential">
-                            <span>Password:</span>
-                            <code>fleet123</code>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="demo-card user">
-                        <div className="demo-header">
-                          <div className="role-icon">🏠</div>
-                          <h4>End User</h4>
-                        </div>
-                        <div className="demo-credentials">
-                          <div className="credential">
-                            <span>Username:</span>
-                            <code>enduser</code>
-                          </div>
-                          <div className="credential">
-                            <span>Password:</span>
-                            <code>user123</code>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="demo-card data">
-                        <div className="demo-header">
-                          <div className="role-icon">📊</div>
-                          <h4>Data Admin</h4>
-                        </div>
-                        <div className="demo-credentials">
-                          <div className="credential">
-                            <span>Username:</span>
-                            <code>data_admin</code>
-                          </div>
-                          <div className="credential">
-                            <span>Password:</span>
-                            <code>data_admin</code>
-                          </div>
-                        </div>
-                      </div>
+                  {device.lastUpdate && (
+                    <div className="device-time-full">
+                      <span className="time-label">Last Update:</span>
+                      <span className="time-value">
+                        {device.lastUpdate instanceof Date 
+                          ? Math.round((Date.now() - device.lastUpdate.getTime()) / 60000) + ' min ago'
+                          : device.lastUpdate}
+                      </span>
                     </div>
-                  </div>
-                )}
+                  )}
+                  {device.macAddress && (
+                    <div className="device-mac">
+                      <span className="mac-label">MAC:</span>
+                      <span className="mac-value">{device.macAddress}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="device-card-footer">
+                  <span className="click-hint">Click to view Firebase data →</span>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="devices-empty-full">
+            <div className="empty-icon-large">📭</div>
+            <h2>No Devices Found</h2>
+            <p>No devices are currently available in Firebase database.</p>
+            <small>Devices will appear here when data is available.</small>
+          </div>
+        )}
+      </div>
 
-        {/* Right Panel - Live Devices */}
-        <div className="image-panel right-panel devices-panel">
-          <div className="devices-container">
-            <div className="devices-header">
-              <h2>Live Devices</h2>
-              <p>Real-time device tracking</p>
+      {/* Device Data Modal */}
+      {selectedDevice && (
+        <div className="device-modal-overlay" onClick={closeDeviceModal}>
+          <div className="device-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="device-modal-header">
+              <h2>Firebase Data: {selectedDevice.name || selectedDevice.macAddress || selectedDevice.id}</h2>
+              <button className="modal-close-btn" onClick={closeDeviceModal}>×</button>
             </div>
             
-            {devicesLoading ? (
-              <div className="devices-loading">
-                <div className="spinner-small"></div>
-                <span>Loading devices...</span>
-              </div>
-            ) : devices.length > 0 ? (
-              <div className="devices-list-landing">
-                {devices.slice(0, 5).map((device) => (
-                  <div key={device.id} className="device-card-landing">
-                    <div className="device-icon-landing">
-                      {device.status === 'Active' ? '🟢' : '🔴'}
-                    </div>
-                    <div className="device-info-landing">
-                      <div className="device-name-landing">{device.name}</div>
-                      <div className="device-status-landing">
-                        <span className={`status-badge-landing ${device.status.toLowerCase()}`}>
-                          {device.status}
-                        </span>
-                        {device.location && device.location.lat && device.location.lng && (
-                          <span className="device-location-landing">
-                            📍 {device.location.lat.toFixed(4)}, {device.location.lng.toFixed(4)}
-                          </span>
-                        )}
+            <div className="device-modal-body">
+              {loadingDeviceData ? (
+                <div className="modal-loading">
+                  <div className="spinner"></div>
+                  <span>Loading Firebase data...</span>
+                </div>
+              ) : deviceData?.error ? (
+                <div className="modal-error">
+                  <div className="error-icon">⚠️</div>
+                  <p>{deviceData.error}</p>
+                </div>
+              ) : deviceData ? (
+                <div className="firebase-data-display">
+                  <div className="data-section">
+                    <h3>Device Information</h3>
+                    <div className="data-grid">
+                      <div className="data-item">
+                        <span className="data-label">MAC Address:</span>
+                        <span className="data-value">{deviceData.macAddress}</span>
                       </div>
-                      {device.lastUpdate && (
-                        <div className="device-time-landing">
-                          Last update: {device.lastUpdate instanceof Date 
-                            ? Math.round((Date.now() - device.lastUpdate.getTime()) / 60000) + ' min ago'
-                            : 'Unknown'}
-                        </div>
+                      <div className="data-item">
+                        <span className="data-label">Total Entries:</span>
+                        <span className="data-value">{deviceData.totalEntries}</span>
+                      </div>
+                      {deviceData.latestEntry && (
+                        <>
+                          <div className="data-item">
+                            <span className="data-label">Latest Timestamp:</span>
+                            <span className="data-value">{deviceData.latestEntry.timestamp}</span>
+                          </div>
+                          <div className="data-item">
+                            <span className="data-label">Latest Date:</span>
+                            <span className="data-value">
+                              {deviceData.latestEntry.parsedDate.toLocaleString()}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
-                ))}
-                {devices.length > 5 && (
-                  <div className="devices-more">
-                    +{devices.length - 5} more devices
+
+                  {deviceData.latestEntry && (
+                    <div className="data-section">
+                      <h3>Latest Entry Data</h3>
+                      <div className="data-json">
+                        <pre>{JSON.stringify(deviceData.latestEntry.data, null, 2)}</pre>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="data-section">
+                    <h3>All Timestamped Entries ({deviceData.timestamps.length})</h3>
+                    <div className="timestamps-list">
+                      {deviceData.timestamps.map((entry, index) => (
+                        <div key={index} className="timestamp-entry">
+                          <div className="timestamp-header">
+                            <span className="timestamp-value">{entry.timestamp}</span>
+                            <span className="timestamp-date">
+                              {entry.parsedDate.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="timestamp-data">
+                            <pre>{JSON.stringify(entry.data, null, 2)}</pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="devices-empty">
-                <div className="empty-icon">📭</div>
-                <p>No devices found</p>
-                <small>Devices will appear here when available</small>
-              </div>
-            )}
-          </div>
-          <div className="panel-overlay devices-overlay">
-            <div className="brand-info">
-              <h2>Smart Device Intelligence</h2>
-              <p>Real-time monitoring and advanced analytics</p>
+
+                  <div className="data-section">
+                    <h3>Raw Firebase Data</h3>
+                    <div className="data-json">
+                      <pre>{JSON.stringify(deviceData.deviceInfo, null, 2)}</pre>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
