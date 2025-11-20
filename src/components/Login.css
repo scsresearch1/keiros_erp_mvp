@@ -1236,6 +1236,150 @@
   font-family: 'Monaco', 'Menlo', monospace;
 }
 
+/* Scientific Data Table */
+.scientific-table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+}
+
+.scientific-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.scientific-data-table thead {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.scientific-data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.scientific-data-table th:last-child {
+  border-right: none;
+}
+
+.scientific-data-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.15s ease;
+}
+
+.scientific-data-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.scientific-data-table tbody tr.first-entry-row {
+  background-color: #f1f5f9;
+  border-top: 2px solid #cbd5e1;
+}
+
+.scientific-data-table tbody tr.first-entry-row:hover {
+  background-color: #e2e8f0;
+}
+
+.scientific-data-table td {
+  padding: 12px 16px;
+  border-right: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.scientific-data-table td:last-child {
+  border-right: none;
+}
+
+.timestamp-cell {
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  min-width: 180px;
+}
+
+.datetime-cell {
+  color: #64748b;
+  white-space: nowrap;
+  min-width: 200px;
+}
+
+.value-cell {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  min-width: 120px;
+}
+
+.latitude-cell {
+  color: #2563eb;
+}
+
+.longitude-cell {
+  color: #059669;
+}
+
+.altitude-cell {
+  color: #d97706;
+}
+
+.delta-cell {
+  text-align: right;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.delta-cell.no-delta {
+  color: #94a3b8;
+}
+
+.delta-value {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.delta-na {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.na-value {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.table-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.table-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+}
+
+.stat-separator {
+  color: #cbd5e1;
+}
+
 /* Overlay adjustment for devices panel */
 .devices-panel .panel-overlay {
   position: absolute;

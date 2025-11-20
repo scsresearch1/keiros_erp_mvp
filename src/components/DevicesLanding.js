@@ -65,6 +65,31 @@ const DevicesLanding = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Helper function to parse numeric value
+  const parseNumeric = (value) => {
+    if (value === null || value === undefined || value === 'N/a' || value === '') return null;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  // Helper function to calculate delta between two values
+  const calculateDelta = (current, previous) => {
+    if (current === null || previous === null) return null;
+    return current - previous;
+  };
+
+  // Helper function to format delta with sign and color indicator
+  const formatDelta = (delta) => {
+    if (delta === null) return { text: 'N/A', color: '#64748b', sign: '' };
+    const sign = delta >= 0 ? '+' : '';
+    const color = delta > 0 ? '#10b981' : delta < 0 ? '#ef4444' : '#64748b';
+    return { 
+      text: `${sign}${delta.toFixed(6)}`, 
+      color: color,
+      sign: delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
+    };
+  };
+
   // Fetch full Firebase data for a device when clicked
   const handleDeviceClick = async (device) => {
     try {
@@ -75,24 +100,76 @@ const DevicesLanding = () => {
       const macAddress = device.id || device.macAddress || device.deviceId;
       const rawData = await firebaseService.fetchData(macAddress);
       
-      // Get all timestamps
-      const timestamps = rawData ? Object.keys(rawData).sort().reverse() : [];
+      // Get all timestamps (sorted chronologically - oldest first)
+      const timestamps = rawData ? Object.keys(rawData).sort() : [];
+      
+      // Process entries with location data (oldest to newest), filter out N/A values
+      const processedEntries = timestamps
+        .map((ts, index) => {
+          const entryData = rawData[ts];
+          const lat = parseNumeric(entryData.latitude);
+          const lng = parseNumeric(entryData.longitude);
+          const alt = parseNumeric(entryData.altitude);
+          
+          // Only include entries with valid location data (at least lat and lng)
+          if (lat === null || lng === null) {
+            return null;
+          }
+          
+          return {
+            timestamp: ts,
+            data: entryData,
+            parsedDate: firebaseService.parseTimestamp(ts),
+            location: {
+              latitude: lat,
+              longitude: lng,
+              altitude: alt
+            },
+            originalIndex: index
+          };
+        })
+        .filter(entry => entry !== null); // Remove entries with N/A values
+      
+      // Reverse to show newest first, then calculate deltas
+      const reversedEntries = processedEntries.reverse().map((entry, displayIndex) => {
+        // Find the previous chronological entry (next in reversed array)
+        const previousChronologicalIndex = displayIndex + 1;
+        const previousEntry = previousChronologicalIndex < processedEntries.length 
+          ? processedEntries[previousChronologicalIndex] 
+          : null;
+        
+        // Calculate deltas: current entry compared to previous chronological entry
+        let deltaLat = null;
+        let deltaLng = null;
+        let deltaAlt = null;
+        
+        if (previousEntry) {
+          deltaLat = calculateDelta(entry.location.latitude, previousEntry.location.latitude);
+          deltaLng = calculateDelta(entry.location.longitude, previousEntry.location.longitude);
+          // Only calculate altitude delta if both values are valid
+          if (entry.location.altitude !== null && previousEntry.location.altitude !== null) {
+            deltaAlt = calculateDelta(entry.location.altitude, previousEntry.location.altitude);
+          }
+        }
+        
+        return {
+          ...entry,
+          deltas: {
+            latitude: deltaLat,
+            longitude: deltaLng,
+            altitude: deltaAlt
+          },
+          isFirst: displayIndex === processedEntries.length - 1 // Last in reversed = first chronologically
+        };
+      });
       
       // Build complete device data object
       const completeDeviceData = {
         macAddress: macAddress,
         deviceInfo: device,
-        timestamps: timestamps.map(ts => ({
-          timestamp: ts,
-          data: rawData[ts],
-          parsedDate: firebaseService.parseTimestamp(ts)
-        })),
+        timestamps: reversedEntries,
         totalEntries: timestamps.length,
-        latestEntry: timestamps.length > 0 ? {
-          timestamp: timestamps[0],
-          data: rawData[timestamps[0]],
-          parsedDate: firebaseService.parseTimestamp(timestamps[0])
-        } : null
+        latestEntry: reversedEntries.length > 0 ? reversedEntries[0] : null
       };
       
       setDeviceData(completeDeviceData);
@@ -242,31 +319,82 @@ const DevicesLanding = () => {
                     </div>
                   </div>
 
-                  {deviceData.latestEntry && (
-                    <div className="data-section">
-                      <h3>Latest Entry Data</h3>
-                      <div className="data-json">
-                        <pre>{JSON.stringify(deviceData.latestEntry.data, null, 2)}</pre>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="data-section">
-                    <h3>All Timestamped Entries ({deviceData.timestamps.length})</h3>
-                    <div className="timestamps-list">
-                      {deviceData.timestamps.map((entry, index) => (
-                        <div key={index} className="timestamp-entry">
-                          <div className="timestamp-header">
-                            <span className="timestamp-value">{entry.timestamp}</span>
-                            <span className="timestamp-date">
-                              {entry.parsedDate.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="timestamp-data">
-                            <pre>{JSON.stringify(entry.data, null, 2)}</pre>
-                          </div>
-                        </div>
-                      ))}
+                    <h3>Location Data Analysis - Point-to-Point Differences</h3>
+                    <div className="scientific-table-container">
+                      <table className="scientific-data-table">
+                        <thead>
+                          <tr>
+                            <th>Timestamp</th>
+                            <th>Date/Time</th>
+                            <th>Latitude</th>
+                            <th>Δ Latitude</th>
+                            <th>Longitude</th>
+                            <th>Δ Longitude</th>
+                            <th>Altitude (m)</th>
+                            <th>Δ Altitude (m)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {deviceData.timestamps.map((entry, index) => {
+                            const latDelta = formatDelta(entry.deltas.latitude);
+                            const lngDelta = formatDelta(entry.deltas.longitude);
+                            const altDelta = formatDelta(entry.deltas.altitude);
+                            
+                            return (
+                              <tr key={index} className={entry.isFirst ? 'first-entry-row' : ''}>
+                                <td className="timestamp-cell">{entry.timestamp}</td>
+                                <td className="datetime-cell">{entry.parsedDate.toLocaleString()}</td>
+                                <td className="value-cell latitude-cell">
+                                  {entry.location.latitude.toFixed(6)}
+                                </td>
+                                <td className={`delta-cell ${entry.isFirst ? 'no-delta' : ''}`}>
+                                  {entry.isFirst ? (
+                                    <span className="delta-na">—</span>
+                                  ) : (
+                                    <span className="delta-value" style={{ color: latDelta.color }}>
+                                      {latDelta.sign} {Math.abs(entry.deltas.latitude).toFixed(6)}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="value-cell longitude-cell">
+                                  {entry.location.longitude.toFixed(6)}
+                                </td>
+                                <td className={`delta-cell ${entry.isFirst ? 'no-delta' : ''}`}>
+                                  {entry.isFirst ? (
+                                    <span className="delta-na">—</span>
+                                  ) : (
+                                    <span className="delta-value" style={{ color: lngDelta.color }}>
+                                      {lngDelta.sign} {Math.abs(entry.deltas.longitude).toFixed(6)}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="value-cell altitude-cell">
+                                  {entry.location.altitude !== null 
+                                    ? entry.location.altitude.toFixed(2)
+                                    : <span className="na-value">—</span>}
+                                </td>
+                                <td className={`delta-cell ${entry.isFirst || entry.deltas.altitude === null ? 'no-delta' : ''}`}>
+                                  {entry.isFirst || entry.deltas.altitude === null ? (
+                                    <span className="delta-na">—</span>
+                                  ) : (
+                                    <span className="delta-value" style={{ color: altDelta.color }}>
+                                      {altDelta.sign} {Math.abs(entry.deltas.altitude).toFixed(2)}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="table-footer">
+                      <div className="table-stats">
+                        <span>Total Valid Entries: {deviceData.timestamps.length}</span>
+                        <span className="stat-separator">|</span>
+                        <span>Entries with N/A values filtered out</span>
+                      </div>
                     </div>
                   </div>
 
