@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import firebaseService from '../services/firebaseService';
 import './Login.css';
 
 const Login = () => {
@@ -8,7 +9,28 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showDemoUsers, setShowDemoUsers] = useState(false);
+  const [devices, setDevices] = useState([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
   const { login } = useAuth();
+
+  // Fetch devices from Firebase on component mount
+  useEffect(() => {
+    const loadDevices = async () => {
+      try {
+        setDevicesLoading(true);
+        const fetchedDevices = await firebaseService.getDevices();
+        const normalizedDevices = firebaseService.normalizeDevices(fetchedDevices);
+        setDevices(normalizedDevices);
+      } catch (err) {
+        console.error('[Login] Error loading devices:', err);
+        // Don't show error to user on landing page, just log it
+      } finally {
+        setDevicesLoading(false);
+      }
+    };
+
+    loadDevices();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -242,28 +264,63 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Right Image Panel */}
-        <div className="image-panel right-panel">
-          <div className="image-container">
-            <img 
-              src="/branding/app_photo.png" 
-              alt="Keiros ERP" 
-              className="panel-image"
-              onError={(e) => {
-                console.error('Right image failed to load');
-                e.target.style.display = 'none';
-                e.target.nextElementSibling.style.display = 'flex';
-              }}
-            />
-            <div className="image-fallback right-fallback">
-              <div className="fallback-content">
-                <div className="fallback-icon">📱</div>
-                <h3>Device Management</h3>
-                <p>Smart IoT Solutions</p>
-              </div>
+        {/* Right Panel - Live Devices */}
+        <div className="image-panel right-panel devices-panel">
+          <div className="devices-container">
+            <div className="devices-header">
+              <h2>Live Devices</h2>
+              <p>Real-time device tracking</p>
             </div>
+            
+            {devicesLoading ? (
+              <div className="devices-loading">
+                <div className="spinner-small"></div>
+                <span>Loading devices...</span>
+              </div>
+            ) : devices.length > 0 ? (
+              <div className="devices-list-landing">
+                {devices.slice(0, 5).map((device) => (
+                  <div key={device.id} className="device-card-landing">
+                    <div className="device-icon-landing">
+                      {device.status === 'Active' ? '🟢' : '🔴'}
+                    </div>
+                    <div className="device-info-landing">
+                      <div className="device-name-landing">{device.name}</div>
+                      <div className="device-status-landing">
+                        <span className={`status-badge-landing ${device.status.toLowerCase()}`}>
+                          {device.status}
+                        </span>
+                        {device.location && device.location.lat && device.location.lng && (
+                          <span className="device-location-landing">
+                            📍 {device.location.lat.toFixed(4)}, {device.location.lng.toFixed(4)}
+                          </span>
+                        )}
+                      </div>
+                      {device.lastUpdate && (
+                        <div className="device-time-landing">
+                          Last update: {device.lastUpdate instanceof Date 
+                            ? Math.round((Date.now() - device.lastUpdate.getTime()) / 60000) + ' min ago'
+                            : 'Unknown'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {devices.length > 5 && (
+                  <div className="devices-more">
+                    +{devices.length - 5} more devices
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="devices-empty">
+                <div className="empty-icon">📭</div>
+                <p>No devices found</p>
+                <small>Devices will appear here when available</small>
+              </div>
+            )}
           </div>
-          <div className="panel-overlay">
+          <div className="panel-overlay devices-overlay">
             <div className="brand-info">
               <h2>Smart Device Intelligence</h2>
               <p>Real-time monitoring and advanced analytics</p>
