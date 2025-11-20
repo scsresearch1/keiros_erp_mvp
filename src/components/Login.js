@@ -217,6 +217,23 @@ const Login = () => {
                           </div>
                         </div>
                       </div>
+
+                      <div className="demo-card data">
+                        <div className="demo-header">
+                          <div className="role-icon">📊</div>
+                          <h4>Data Admin</h4>
+                        </div>
+                        <div className="demo-credentials">
+                          <div className="credential">
+                            <span>Username:</span>
+                            <code>data_admin</code>
+                          </div>
+                          <div className="credential">
+                            <span>Password:</span>
+                            <code>data_admin</code>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

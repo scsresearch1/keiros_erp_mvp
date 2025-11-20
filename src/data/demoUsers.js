@@ -25,6 +25,15 @@ export const demoUsers = [
     fullName: 'End User',
     level: 'enduser',
     email: 'user@keiros.com'
+  },
+  
+  // Data Admin
+  {
+    username: 'data_admin',
+    password: 'data_admin',
+    fullName: 'Data Administrator',
+    level: 'dataadmin',
+    email: 'dataadmin@keiros.com'
   }
 ];
 
@@ -33,7 +42,8 @@ export const getUserLevel = (level) => {
   const levels = {
     admin: { name: 'Super Administrator', access: 'Full System Access' },
     fleetmanager: { name: 'Fleet Manager', access: 'Fleet & Logistics Management' },
-    enduser: { name: 'End User', access: 'Device Monitoring Only' }
+    enduser: { name: 'End User', access: 'Device Monitoring Only' },
+    dataadmin: { name: 'Data Administrator', access: 'Data Management & Analytics' }
   };
   return levels[level] || { name: 'Unknown', access: 'No Access' };
 };
