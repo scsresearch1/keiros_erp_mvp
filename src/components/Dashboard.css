@@ -23,8 +23,8 @@
 
 /* Main Dashboard Layout */
 .dashboard-content {
-  margin-left: 280px;
-  width: calc(100% - 280px); /* Ensure content expands to fill available space */
+  margin-left: 0;
+  width: 100%; /* Full width without sidebar */
   min-height: 100vh;
   background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
   transition: margin-left 0.3s ease;
@@ -509,8 +509,8 @@
 /* Responsive Grid */
 @media (max-width: 1200px) {
   .dashboard-content {
-    margin-left: 280px;
-    width: calc(100% - 280px); /* Ensure content expands to fill available space */
+    margin-left: 0;
+    width: 100%; /* Full width without sidebar */
   }
   
   .content-container {
@@ -545,8 +545,8 @@
 
 @media (max-width: 1024px) {
   .dashboard-content {
-    margin-left: 250px;
-    width: calc(100% - 250px); /* Ensure content expands to fill available space */
+    margin-left: 0;
+    width: 100%; /* Full width without sidebar */
   }
   
   .content-container {

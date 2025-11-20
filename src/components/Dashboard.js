@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Sidebar from './Sidebar';
 import Header from './Header';
 import Overview from './Overview';
 import Devices from './Devices';
@@ -57,8 +56,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <Sidebar currentUser={currentUser} />
-      <div className="dashboard-content" id="main-content">
+      <div className="dashboard-content" id="main-content" style={{ marginLeft: 0 }}>
         <Header currentUser={currentUser} onLogout={logout} />
         
         <div className="content-container">
