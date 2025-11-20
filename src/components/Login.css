@@ -1049,9 +1049,9 @@
 .device-modal-content {
   background: white;
   border-radius: 20px;
-  max-width: 900px;
+  max-width: 95vw;
   width: 100%;
-  max-height: 90vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -1075,6 +1075,39 @@
   align-items: center;
   padding: 24px 30px;
   border-bottom: 2px solid #e2e8f0;
+}
+
+.device-modal-header > div:first-child {
+  flex: 1;
+}
+
+.auto-refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.refresh-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 .device-modal-header h2 {
@@ -1249,7 +1282,8 @@
   width: 100%;
   border-collapse: collapse;
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  table-layout: auto;
 }
 
 .scientific-data-table thead {
@@ -1261,12 +1295,12 @@
 }
 
 .scientific-data-table th {
-  padding: 12px 16px;
+  padding: 10px 12px;
   text-align: left;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
 }
@@ -1294,9 +1328,10 @@
 }
 
 .scientific-data-table td {
-  padding: 12px 16px;
+  padding: 10px 12px;
   border-right: 1px solid #e2e8f0;
   vertical-align: top;
+  white-space: nowrap;
 }
 
 .scientific-data-table td:last-child {
@@ -1307,13 +1342,13 @@
   font-weight: 600;
   color: #475569;
   white-space: nowrap;
-  min-width: 180px;
+  min-width: 160px;
 }
 
 .datetime-cell {
   color: #64748b;
   white-space: nowrap;
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .value-cell {
@@ -1321,7 +1356,7 @@
   color: #1e293b;
   text-align: right;
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-  min-width: 120px;
+  min-width: 100px;
 }
 
 .latitude-cell {
@@ -1339,7 +1374,7 @@
 .delta-cell {
   text-align: right;
   font-weight: 600;
-  min-width: 100px;
+  min-width: 90px;
 }
 
 .delta-cell.no-delta {

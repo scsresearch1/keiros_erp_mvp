@@ -186,6 +186,116 @@ const DevicesLanding = () => {
     setDeviceData(null);
   };
 
+  // Auto-refresh device data when modal is open
+  useEffect(() => {
+    if (!selectedDevice) return;
+
+    const refreshDeviceData = async () => {
+      // Helper functions for data processing
+      const parseNumeric = (value) => {
+        if (value === null || value === undefined || value === 'N/a' || value === '') return null;
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? null : parsed;
+      };
+
+      const calculateDelta = (current, previous) => {
+        if (current === null || previous === null) return null;
+        return current - previous;
+      };
+
+      try {
+        const macAddress = selectedDevice.id || selectedDevice.macAddress || selectedDevice.deviceId;
+        const rawData = await firebaseService.fetchData(macAddress);
+        
+        // Get all timestamps (sorted chronologically - oldest first)
+        const timestamps = rawData ? Object.keys(rawData).sort() : [];
+        
+        // Process entries with location data (oldest to newest), filter out N/A values
+        const processedEntries = timestamps
+          .map((ts, index) => {
+            const entryData = rawData[ts];
+            const lat = parseNumeric(entryData.latitude);
+            const lng = parseNumeric(entryData.longitude);
+            const alt = parseNumeric(entryData.altitude);
+            
+            // Only include entries with valid location data (at least lat and lng)
+            if (lat === null || lng === null) {
+              return null;
+            }
+            
+            return {
+              timestamp: ts,
+              data: entryData,
+              parsedDate: firebaseService.parseTimestamp(ts),
+              location: {
+                latitude: lat,
+                longitude: lng,
+                altitude: alt
+              },
+              originalIndex: index
+            };
+          })
+          .filter(entry => entry !== null); // Remove entries with N/A values
+        
+        // Reverse to show newest first, then calculate deltas
+        const reversedEntries = processedEntries.reverse().map((entry, displayIndex) => {
+          // Find the previous chronological entry (next in reversed array)
+          const previousChronologicalIndex = displayIndex + 1;
+          const previousEntry = previousChronologicalIndex < processedEntries.length 
+            ? processedEntries[previousChronologicalIndex] 
+            : null;
+          
+          // Calculate deltas: current entry compared to previous chronological entry
+          let deltaLat = null;
+          let deltaLng = null;
+          let deltaAlt = null;
+          
+          if (previousEntry) {
+            deltaLat = calculateDelta(entry.location.latitude, previousEntry.location.latitude);
+            deltaLng = calculateDelta(entry.location.longitude, previousEntry.location.longitude);
+            // Only calculate altitude delta if both values are valid
+            if (entry.location.altitude !== null && previousEntry.location.altitude !== null) {
+              deltaAlt = calculateDelta(entry.location.altitude, previousEntry.location.altitude);
+            }
+          }
+          
+          return {
+            ...entry,
+            deltas: {
+              latitude: deltaLat,
+              longitude: deltaLng,
+              altitude: deltaAlt
+            },
+            isFirst: displayIndex === processedEntries.length - 1 // Last in reversed = first chronologically
+          };
+        });
+        
+        // Build complete device data object
+        const completeDeviceData = {
+          macAddress: macAddress,
+          deviceInfo: selectedDevice,
+          timestamps: reversedEntries,
+          totalEntries: timestamps.length,
+          latestEntry: reversedEntries.length > 0 ? reversedEntries[0] : null
+        };
+        
+        setDeviceData(completeDeviceData);
+      } catch (err) {
+        console.error('[DevicesLanding] Error refreshing device data:', err);
+        // Don't set error state on refresh, just log it
+      }
+    };
+
+    // Initial load
+    refreshDeviceData();
+
+    // Set up auto-refresh every 30 seconds
+    const refreshInterval = setInterval(refreshDeviceData, 30000);
+
+    // Cleanup interval on unmount or when modal closes
+    return () => clearInterval(refreshInterval);
+  }, [selectedDevice]);
+
   return (
     <div className="landing-container">
       {/* Background */}
@@ -274,7 +384,13 @@ const DevicesLanding = () => {
         <div className="device-modal-overlay" onClick={closeDeviceModal}>
           <div className="device-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="device-modal-header">
-              <h2>Firebase Data: {selectedDevice.name || selectedDevice.macAddress || selectedDevice.id}</h2>
+              <div>
+                <h2>Firebase Data: {selectedDevice.name || selectedDevice.macAddress || selectedDevice.id}</h2>
+                <div className="auto-refresh-indicator">
+                  <span className="refresh-dot"></span>
+                  Auto-refreshing every 30s
+                </div>
+              </div>
               <button className="modal-close-btn" onClick={closeDeviceModal}>×</button>
             </div>
             
