@@ -11,6 +11,9 @@ const Sidebar = ({ currentUser }) => {
   
   // Check if user is a fleet manager
   const isFleetManager = currentUser.level === 'fleetmanager';
+  
+  // Check if user is data admin
+  const isDataAdmin = currentUser.level === 'dataadmin';
 
   // Debug logging
   useEffect(() => {
@@ -40,6 +43,49 @@ const Sidebar = ({ currentUser }) => {
       icon: '📈',
       path: '/reports',
       title: 'Generate and view fleet reports'
+    }
+  ] : isDataAdmin ? [
+    {
+      name: 'Live Devices',
+      icon: '📡',
+      path: '/devices-landing',
+      title: 'Real-time Firebase device monitoring'
+    },
+    {
+      name: 'Overview',
+      icon: '📊',
+      path: '/overview',
+      title: 'System overview and key metrics dashboard'
+    },
+    {
+      name: 'Devices',
+      icon: '📱',
+      path: '/devices',
+      title: 'Manage all IoT devices, SIMs, and connectivity'
+    },
+    {
+      name: 'Users',
+      icon: '👥',
+      path: '/users',
+      title: 'User account management and role assignments'
+    },
+    {
+      name: 'Geofence Alerts',
+      icon: '🚨',
+      path: '/geofence-alerts',
+      title: 'Monitor geofence violations and alerts'
+    },
+    {
+      name: 'Reports',
+      icon: '📈',
+      path: '/reports',
+      title: 'Generate and view system reports'
+    },
+    {
+      name: 'Settings',
+      icon: '⚙️',
+      path: '/settings',
+      title: 'System configuration and preferences'
     }
   ] : [
     {

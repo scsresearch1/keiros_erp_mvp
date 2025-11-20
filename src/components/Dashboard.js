@@ -11,6 +11,7 @@ import Reports from './Reports';
 import Settings from './Settings';
 import DeliveryAgency from './DeliveryAgency';
 import EndUserDashboard from './EndUserDashboard';
+import DevicesLanding from './DevicesLanding';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -47,8 +48,12 @@ const Dashboard = () => {
   // Check if user is a fleet manager
   const isFleetManager = currentUser.level === 'fleetmanager';
   
+  // Check if user is data admin
+  const isDataAdmin = currentUser.level === 'dataadmin';
+  
   console.log('Dashboard: isEndUser:', isEndUser);
   console.log('Dashboard: isFleetManager:', isFleetManager);
+  console.log('Dashboard: isDataAdmin:', isDataAdmin);
 
   return (
     <div className="dashboard">
@@ -71,6 +76,18 @@ const Dashboard = () => {
                 <Route path="/reports" element={<Reports currentUser={currentUser} />} />
                 <Route path="/settings" element={<Settings currentUser={currentUser} />} />
                 <Route path="*" element={<Navigate to="/delivery-agency" replace />} />
+              </>
+            ) : isDataAdmin ? (
+              <>
+                <Route path="/" element={<Navigate to="/devices-landing" replace />} />
+                <Route path="/devices-landing" element={<DevicesLanding />} />
+                <Route path="/overview" element={<Overview currentUser={currentUser} />} />
+                <Route path="/devices" element={<Devices currentUser={currentUser} />} />
+                <Route path="/users" element={<Users currentUser={currentUser} />} />
+                <Route path="/geofence-alerts" element={<GeofenceAlerts currentUser={currentUser} />} />
+                <Route path="/reports" element={<Reports currentUser={currentUser} />} />
+                <Route path="/settings" element={<Settings currentUser={currentUser} />} />
+                <Route path="*" element={<Navigate to="/devices-landing" replace />} />
               </>
             ) : (
               <>
