@@ -199,7 +199,7 @@ class FirebaseService {
       // Determine status based on data freshness (within last 5 minutes = Active)
       const isActive = timestampDate && (Date.now() - timestampDate.getTime()) < 5 * 60 * 1000;
       
-      // Build device object
+      // Build device object (include raw latestData fields for tile: fix, wifi_rssi)
       const device = {
         id: macAddress,
         deviceId: macAddress,
@@ -207,20 +207,22 @@ class FirebaseService {
         name: deviceName,
         type: 'Door Number Plate',
         location: {
-          lat: lat || 17.5212, // Default to Hyderabad if no location
-          lng: lng || 78.3964,
-          altitude: alt || 0,
-          address: lat && lng 
-            ? `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}` 
+          lat: lat ?? null,
+          lng: lng ?? null,
+          altitude: alt ?? null,
+          address: lat != null && lng != null
+            ? `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
             : 'Location not available',
-          accuracy: 10 // Default accuracy
+          accuracy: 10
         },
         status: isActive ? 'Active' : 'Offline',
-        signal: isActive ? 85 : 0, // Estimate signal based on status
+        signal: isActive ? 85 : 0,
         lastSeen: timestampDate,
         lastUpdate: timestampDate,
         latestTimestamp: latestTimestamp,
-        entryCount: timestamps.length
+        entryCount: timestamps.length,
+        fix: latestData.fix != null && latestData.fix !== '' ? String(latestData.fix) : null,
+        wifi_rssi: latestData.wifi_rssi != null && latestData.wifi_rssi !== '' ? String(latestData.wifi_rssi) : null
       };
       
       return device;

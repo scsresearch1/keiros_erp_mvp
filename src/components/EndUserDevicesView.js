@@ -179,6 +179,14 @@ const EndUserDevicesView = () => {
     return 'Offline';
   };
 
+  /** Convert WiFi RSSI (dBm) to signal strength % (0–100). -50 ≈ 100%, -90 ≈ 0%. */
+  const signalToPercent = (rssi) => {
+    const n = Number(rssi);
+    if (Number.isNaN(n)) return null;
+    const pct = Math.min(100, Math.max(0, 2 * (n + 100)));
+    return Math.round(pct);
+  };
+
   const getDisplayStatusClass = (device) => {
     const s = getDisplayStatus(device);
     if (s === 'Online') return 'online';
@@ -373,6 +381,23 @@ const EndUserDevicesView = () => {
                     <span className="enduser-device-last-access-icon" aria-hidden="true">🕐</span>
                     <span className="enduser-device-last-access-value">{formatLastUpdate(device)}</span>
                   </div>
+                </div>
+                {/* Internet Connection Status, Signal % from Firebase */}
+                <div className="enduser-device-extra-fields">
+                  {(device.fix != null || device.wifi_rssi != null) && (
+                    <div className="enduser-device-extra-row">
+                      {device.fix != null && (
+                        <span className="enduser-device-extra-item" title="Internet connection status">
+                          Internet Connection Status: {device.fix === '0' || device.fix === 0 ? 'Disconnected' : 'Connected'}
+                        </span>
+                      )}
+                      {device.wifi_rssi != null && signalToPercent(device.wifi_rssi) != null && (
+                        <span className="enduser-device-extra-item" title="Signal strength (0–100%)">
+                          Signal: {signalToPercent(device.wifi_rssi)}%
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {(device.macAddress || device.id) && (
                   <div className="enduser-device-row enduser-device-row-mac">
