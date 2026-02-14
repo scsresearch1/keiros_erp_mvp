@@ -427,7 +427,9 @@ const DevicesLanding = () => {
                           <div className="data-item">
                             <span className="data-label">Latest Date:</span>
                             <span className="data-value">
-                              {deviceData.latestEntry.parsedDate.toLocaleString()}
+                              {deviceData.latestEntry.parsedDate != null
+                                ? deviceData.latestEntry.parsedDate.toLocaleString()
+                                : deviceData.latestEntry.timestamp ?? 'N/A'}
                             </span>
                           </div>
                         </>
@@ -460,7 +462,7 @@ const DevicesLanding = () => {
                             return (
                               <tr key={index} className={entry.isFirst ? 'first-entry-row' : ''}>
                                 <td className="timestamp-cell">{entry.timestamp}</td>
-                                <td className="datetime-cell">{entry.parsedDate.toLocaleString()}</td>
+                                <td className="datetime-cell">{entry.parsedDate != null ? entry.parsedDate.toLocaleString() : entry.timestamp ?? 'N/A'}</td>
                                 <td className="value-cell latitude-cell">
                                   {entry.location.latitude.toFixed(6)}
                                 </td>
