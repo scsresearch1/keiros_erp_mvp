@@ -194,6 +194,12 @@ const EndUserDevicesView = () => {
     return 'offline';
   };
 
+  /** Internet Connection Status from same timestamp logic as Online/Offline: Connected when updating, Disconnected when not. */
+  const getConnectionStatus = (device) => {
+    const status = device.status || 'Offline';
+    return status === 'Active' ? 'Connected' : 'Disconnected';
+  };
+
   const formatLastUpdate = (device) => {
     const date = device.lastUpdate || device.lastSeen;
     if (!date) return '—';
@@ -363,8 +369,11 @@ const EndUserDevicesView = () => {
                   <span className={`enduser-device-badge ${getDisplayStatusClass(device)}`}>
                     {getDisplayStatus(device)}
                   </span>
+                  <span className="enduser-device-connection-status" title="Based on last update time">
+                    Internet Connection Status: {getConnectionStatus(device)}
+                  </span>
                 </div>
-                {/* Compact: Last access coordinates + time */}
+                {/* Coordinates, time, and signal inside same box */}
                 <div className="enduser-device-last-access">
                   <div className="enduser-device-last-access-coords" title="Last access coordinates">
                     <span className="enduser-device-last-access-icon" aria-hidden="true">📍</span>
@@ -381,21 +390,10 @@ const EndUserDevicesView = () => {
                     <span className="enduser-device-last-access-icon" aria-hidden="true">🕐</span>
                     <span className="enduser-device-last-access-value">{formatLastUpdate(device)}</span>
                   </div>
-                </div>
-                {/* Internet Connection Status, Signal % from Firebase */}
-                <div className="enduser-device-extra-fields">
-                  {(device.fix != null || device.wifi_rssi != null) && (
-                    <div className="enduser-device-extra-row">
-                      {device.fix != null && (
-                        <span className="enduser-device-extra-item" title="Internet connection status">
-                          Internet Connection Status: {device.fix === '0' || device.fix === 0 ? 'Disconnected' : 'Connected'}
-                        </span>
-                      )}
-                      {device.wifi_rssi != null && signalToPercent(device.wifi_rssi) != null && (
-                        <span className="enduser-device-extra-item" title="Signal strength (0–100%)">
-                          Signal: {signalToPercent(device.wifi_rssi)}%
-                        </span>
-                      )}
+                  {device.wifi_rssi != null && signalToPercent(device.wifi_rssi) != null && (
+                    <div className="enduser-device-last-access-signal" title="Signal strength (0–100%)">
+                      <span className="enduser-device-last-access-icon" aria-hidden="true">📶</span>
+                      <span className="enduser-device-last-access-value">Signal: {signalToPercent(device.wifi_rssi)}%</span>
                     </div>
                   )}
                 </div>

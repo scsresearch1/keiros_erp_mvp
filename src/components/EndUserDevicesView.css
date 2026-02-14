@@ -450,6 +450,16 @@
 
 .enduser-device-row-status {
   margin-bottom: 0.125rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.enduser-device-connection-status {
+  font-size: 0.6875rem;
+  color: var(--enduser-gray-dark);
+  font-weight: 500;
 }
 
 .enduser-device-badge {
@@ -497,7 +507,8 @@
 }
 
 .enduser-device-last-access-coords,
-.enduser-device-last-access-time {
+.enduser-device-last-access-time,
+.enduser-device-last-access-signal {
   display: flex;
   align-items: center;
   gap: 0.35rem;
