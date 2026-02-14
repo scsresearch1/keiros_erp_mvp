@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import firebaseService from '../services/firebaseService';
 import './EndUserDevicesView.css';
 
@@ -7,6 +7,8 @@ const EndUserDevicesView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   const loadDevices = async () => {
     try {
@@ -46,6 +48,49 @@ const EndUserDevicesView = () => {
     loadDevices();
   };
 
+  const handleLocationToggle = () => {
+    if (locationEnabled) {
+      setLocationEnabled(false);
+      setLocationError(null);
+      return;
+    }
+    if (!navigator.geolocation) {
+      setLocationError('Location is not supported by this browser.');
+      return;
+    }
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        setLocationEnabled(true);
+        setLocationError(null);
+      },
+      (err) => {
+        setLocationEnabled(false);
+        if (err.code === 1) {
+          setLocationError('Location access denied.');
+        } else if (err.code === 2) {
+          setLocationError('Location unavailable.');
+        } else {
+          setLocationError('Could not get location.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  /** Devices sorted by last update time (most recent first). */
+  const sortedDevices = useMemo(() => {
+    return [...devices].sort((a, b) => {
+      const dateA = a.lastUpdate || a.lastSeen;
+      const dateB = b.lastUpdate || b.lastSeen;
+      const timeA = dateA ? (dateA instanceof Date ? dateA : new Date(dateA)).getTime() : 0;
+      const timeB = dateB ? (dateB instanceof Date ? dateB : new Date(dateB)).getTime() : 0;
+      if (Number.isNaN(timeA)) return 1;
+      if (Number.isNaN(timeB)) return -1;
+      return timeB - timeA; // newest first
+    });
+  }, [devices]);
+
   const formatLastUpdate = (device) => {
     const date = device.lastUpdate || device.lastSeen;
     if (!date) return '—';
@@ -67,15 +112,34 @@ const EndUserDevicesView = () => {
       <header className="enduser-devices-header">
         <h1 className="enduser-devices-title">My Devices</h1>
         <p className="enduser-devices-subtitle">Devices from Firebase</p>
-        <button
-          type="button"
-          className="enduser-devices-refresh"
-          onClick={handleRefresh}
-          disabled={loading || refreshing}
-          aria-label="Refresh devices"
-        >
-          {refreshing ? 'Refreshing…' : 'Refresh'}
-        </button>
+        <div className="enduser-devices-header-actions">
+          <button
+            type="button"
+            className={`enduser-devices-location-toggle ${locationEnabled ? 'on' : 'off'}`}
+            onClick={handleLocationToggle}
+            aria-label={locationEnabled ? 'Stop sharing location' : 'Share my location'}
+            title={locationEnabled ? 'Stop sharing your browser location' : 'Share your current location with the app'}
+          >
+            <span className="enduser-devices-location-icon" aria-hidden="true">
+              {locationEnabled ? '📍' : '📌'}
+            </span>
+            {locationEnabled ? 'Location shared' : 'Share my location'}
+          </button>
+          <button
+            type="button"
+            className="enduser-devices-refresh"
+            onClick={handleRefresh}
+            disabled={loading || refreshing}
+            aria-label="Refresh devices"
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
+        {locationError && (
+          <p className="enduser-devices-location-error" role="alert">
+            {locationError}
+          </p>
+        )}
       </header>
 
       {loading && devices.length === 0 ? (
@@ -94,7 +158,7 @@ const EndUserDevicesView = () => {
         </div>
       ) : (
         <div className="enduser-devices-grid">
-          {devices.map((device) => (
+          {sortedDevices.map((device) => (
             <article
               key={device.id || device.macAddress || device.deviceId}
               className="enduser-device-card"
