@@ -9,7 +9,7 @@ import GeofenceAlerts from './GeofenceAlerts';
 import Reports from './Reports';
 import Settings from './Settings';
 import DeliveryAgency from './DeliveryAgency';
-import EndUserDashboard from './EndUserDashboard';
+import EndUserDevicesView from './EndUserDevicesView';
 import DevicesLanding from './DevicesLanding';
 import './Dashboard.css';
 
@@ -63,7 +63,7 @@ const Dashboard = () => {
           <Routes>
             {isEndUser ? (
               <>
-                <Route path="/" element={<EndUserDashboard currentUser={currentUser} />} />
+                <Route path="/" element={<EndUserDevicesView />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
             ) : isFleetManager ? (
