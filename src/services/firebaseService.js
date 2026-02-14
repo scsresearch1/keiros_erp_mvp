@@ -8,6 +8,9 @@
 const DATABASE_URL = process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://kerios-4cf38-default-rtdb.firebaseio.com/';
 const DATABASE_SECRET = process.env.REACT_APP_FIREBASE_DATABASE_SECRET || '0MYjfEbMGcsuG96AmGxKMoN1T7mCKsoSpWBhO6RL';
 
+/** Root-level keys that are not device IDs (MAC addresses) - exclude from device list */
+const FIREBASE_ROOT_IGNORED_KEYS = ['devices', 'geofencealerts', 'geofence'];
+
 class FirebaseService {
   constructor() {
     this.databaseUrl = DATABASE_URL.endsWith('/') ? DATABASE_URL : `${DATABASE_URL}/`;
@@ -107,10 +110,13 @@ class FirebaseService {
         return [];
       }
       
-      // Root data contains MAC addresses as keys
+      // Root data contains MAC addresses as keys; ignore known non-device paths
       if (rootData && typeof rootData === 'object' && !Array.isArray(rootData)) {
-        const deviceIds = Object.keys(rootData);
-        console.log(`[Firebase] Found ${deviceIds.length} device(s) at root:`, deviceIds);
+        const allKeys = Object.keys(rootData);
+        const deviceIds = allKeys.filter(
+          (key) => !FIREBASE_ROOT_IGNORED_KEYS.includes(String(key).toLowerCase())
+        );
+        console.log(`[Firebase] Found ${deviceIds.length} device(s) at root (ignored: devices, geofenceAlerts):`, deviceIds);
         
         // Process each device (MAC address)
         const devices = await Promise.all(
@@ -155,7 +161,7 @@ class FirebaseService {
         return null;
       }
       
-      // Get all timestamps and sort them to get the latest
+      // Get all timestamps and sort them (newest first); use latest entry with valid date only
       const timestamps = Object.keys(timestampData).sort().reverse();
       
       if (timestamps.length === 0) {
@@ -163,9 +169,22 @@ class FirebaseService {
         return null;
       }
       
-      // Get the latest timestamp entry
-      const latestTimestamp = timestamps[0];
-      const latestData = timestampData[latestTimestamp];
+      let latestTimestamp = null;
+      let latestData = null;
+      let timestampDate = null;
+      for (const ts of timestamps) {
+        const parsed = this.parseTimestamp(ts);
+        if (parsed && !Number.isNaN(parsed.getTime())) {
+          latestTimestamp = ts;
+          latestData = timestampData[ts];
+          timestampDate = parsed;
+          break;
+        }
+      }
+      if (!latestData) {
+        console.warn(`[Firebase] No valid datetime entries for device ${macAddress}`);
+        return null;
+      }
       
       console.log(`[Firebase] Latest entry for ${macAddress}:`, latestTimestamp, latestData);
       
@@ -173,9 +192,6 @@ class FirebaseService {
       const lat = latestData.latitude && latestData.latitude !== 'N/a' ? parseFloat(latestData.latitude) : null;
       const lng = latestData.longitude && latestData.longitude !== 'N/a' ? parseFloat(latestData.longitude) : null;
       const alt = latestData.altitude && latestData.altitude !== 'N/a' ? parseFloat(latestData.altitude) : null;
-      
-      // Parse timestamp
-      const timestampDate = this.parseTimestamp(latestTimestamp);
       
       // Determine device name from MAC address or use as-is
       const deviceName = this.formatDeviceName(macAddress);
@@ -201,8 +217,8 @@ class FirebaseService {
         },
         status: isActive ? 'Active' : 'Offline',
         signal: isActive ? 85 : 0, // Estimate signal based on status
-        lastSeen: timestampDate || new Date(),
-        lastUpdate: timestampDate || new Date(),
+        lastSeen: timestampDate,
+        lastUpdate: timestampDate,
         latestTimestamp: latestTimestamp,
         entryCount: timestamps.length
       };
@@ -215,22 +231,25 @@ class FirebaseService {
   }
 
   /**
-   * Parse timestamp string to Date object
+   * Parse timestamp string to Date object. Returns null if invalid (caller should use latest valid).
    */
   parseTimestamp(timestampStr) {
     try {
+      if (!timestampStr || typeof timestampStr !== 'string') return null;
       // Format: 2025-11-01_14-37-30
       const parts = timestampStr.split('_');
       if (parts.length === 2) {
         const datePart = parts[0]; // 2025-11-01
         const timePart = parts[1].replace(/-/g, ':'); // 14:37:30
         const dateTimeStr = `${datePart}T${timePart}`;
-        return new Date(dateTimeStr);
+        const d = new Date(dateTimeStr);
+        if (Number.isNaN(d.getTime())) return null;
+        return d;
       }
-      return new Date();
+      return null;
     } catch (error) {
       console.error(`[Firebase] Error parsing timestamp ${timestampStr}:`, error);
-      return new Date();
+      return null;
     }
   }
 

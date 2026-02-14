@@ -50,6 +50,7 @@ const EndUserDevicesView = () => {
     const date = device.lastUpdate || device.lastSeen;
     if (!date) return '—';
     const d = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(d.getTime())) return '—';
     const mins = Math.round((Date.now() - d.getTime()) / 60000);
     if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins} min ago`;
