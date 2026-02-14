@@ -60,14 +60,15 @@ const Devices = ({ currentUser }) => {
       }
     };
 
-  // Admin-only access check
-  if (currentUser.level !== 'admin') {
+  // Admin and Data Admin access check
+  const canAccessDevices = currentUser.level === 'admin' || currentUser.level === 'dataadmin';
+  if (!canAccessDevices) {
     return (
       <div className="empty-state">
         <div className="empty-state-icon">🚫</div>
         <div className="empty-state-title">Access Denied</div>
         <div className="empty-state-description">
-          This section is restricted to Super Administrators only.
+          This section is restricted to Super Administrators and Data Administrators only.
         </div>
       </div>
     );
