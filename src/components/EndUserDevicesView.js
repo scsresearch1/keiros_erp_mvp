@@ -67,10 +67,18 @@ const EndUserDevicesView = () => {
     setLocationError(null);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setLocationEnabled(true);
-        setLocationError(null);
+        const { latitude, longitude, accuracy } = position.coords;
+        if (typeof latitude === 'number' && typeof longitude === 'number' && !Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+          setUserLocation({
+            lat: latitude,
+            lng: longitude,
+            accuracyMeters: typeof accuracy === 'number' && !Number.isNaN(accuracy) ? Math.round(accuracy) : null
+          });
+          setLocationEnabled(true);
+          setLocationError(null);
+        } else {
+          setLocationError('Invalid coordinates received.');
+        }
       },
       (err) => {
         setLocationEnabled(false);
@@ -83,7 +91,7 @@ const EndUserDevicesView = () => {
           setLocationError('Could not get location.');
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
   };
 
@@ -104,16 +112,43 @@ const EndUserDevicesView = () => {
   };
 
   const handleNavigate = (device) => {
-    const coords = getDeviceCoords(device);
-    if (!coords) return;
-    let url = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
-    if (userLocation) {
-      url += `&origin=${userLocation.lat},${userLocation.lng}`;
-    } else {
-      url += '&origin=current+location';
+    const dest = getDeviceCoords(device);
+    if (!dest) return;
+
+    const openDirections = (originLat, originLng) => {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&origin=${originLat},${originLng}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setSelectedDevice(null);
+    };
+
+    if (!locationEnabled) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&origin=current+location`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setSelectedDevice(null);
+      return;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setSelectedDevice(null);
+
+    // Get fresh, high-accuracy position for Navigate (longer timeout for better GPS fix)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setUserLocation({
+          lat: latitude,
+          lng: longitude,
+          accuracyMeters: typeof accuracy === 'number' && !Number.isNaN(accuracy) ? Math.round(accuracy) : null
+        });
+        openDirections(latitude, longitude);
+      },
+      () => {
+        if (userLocation) openDirections(userLocation.lat, userLocation.lng);
+        else {
+          const url = `https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}&origin=current+location`;
+          window.open(url, '_blank', 'noopener,noreferrer');
+          setSelectedDevice(null);
+        }
+      },
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+    );
   };
 
   /** Devices sorted by last update time (most recent first). */
@@ -199,6 +234,49 @@ const EndUserDevicesView = () => {
           <p className="enduser-devices-location-error" role="alert">
             {locationError}
           </p>
+        )}
+        {locationEnabled && userLocation && (
+          <div className="enduser-devices-your-location">
+            <span className="enduser-devices-your-location-label">Your location:</span>
+            <span className="enduser-devices-your-location-coords">
+              {Number(userLocation.lat).toFixed(6)}, {Number(userLocation.lng).toFixed(6)}
+              {userLocation.accuracyMeters != null && (
+                <span className="enduser-devices-your-location-accuracy" title="Radius of uncertainty in meters">
+                  {' '}(±{userLocation.accuracyMeters} m)
+                </span>
+              )}
+            </span>
+            {userLocation.accuracyMeters != null && userLocation.accuracyMeters > 80 && (
+              <span className="enduser-devices-your-location-warning">
+                Approximate. Tap Update or move for a better fix.
+              </span>
+            )}
+            <button
+              type="button"
+              className="enduser-devices-your-location-update"
+              onClick={() => {
+                if (!navigator.geolocation) return;
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    if (typeof latitude === 'number' && typeof longitude === 'number' && !Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+                      setUserLocation({
+                        lat: latitude,
+                        lng: longitude,
+                        accuracyMeters: typeof accuracy === 'number' && !Number.isNaN(accuracy) ? Math.round(accuracy) : null
+                      });
+                      setLocationError(null);
+                    }
+                  },
+                  () => setLocationError('Could not update location.'),
+                  { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+                );
+              }}
+              aria-label="Update your location for better accuracy"
+            >
+              Update
+            </button>
+          </div>
         )}
       </header>
 

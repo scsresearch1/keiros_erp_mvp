@@ -147,6 +147,66 @@
   order: 10;
 }
 
+.enduser-devices-your-location {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  order: 9;
+}
+
+.enduser-devices-your-location-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.enduser-devices-your-location-coords {
+  font-size: 0.8125rem;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
+}
+
+.enduser-devices-your-location-accuracy {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+}
+
+.enduser-devices-your-location-warning {
+  width: 100%;
+  font-size: 0.75rem;
+  color: #fef3c7;
+  background: rgba(217, 119, 6, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+}
+
+.enduser-devices-your-location-update {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--enduser-blue-dark);
+  background: var(--enduser-white);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.15s;
+}
+
+.enduser-devices-your-location-update:hover {
+  background: var(--enduser-blue-soft);
+}
+
 .enduser-devices-refresh {
   padding: 0.5rem clamp(0.75rem, 2vw, 1rem);
   font-size: 0.875rem;
