@@ -172,6 +172,79 @@
   transform: none;
 }
 
+/* Auto-refresh interval – compact bar below header */
+.enduser-devices-auto-refresh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-width: 0;
+}
+
+.enduser-devices-auto-refresh-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
+}
+
+.enduser-devices-auto-refresh-options {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.enduser-devices-auto-refresh-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.enduser-devices-auto-refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.enduser-devices-auto-refresh-btn.active {
+  color: var(--enduser-blue-dark);
+  background: var(--enduser-white);
+  border-color: var(--enduser-white);
+}
+
+.enduser-devices-auto-refresh-btn.active:hover {
+  background: var(--enduser-blue-soft);
+  border-color: var(--enduser-blue-soft);
+}
+
+.enduser-devices-auto-refresh-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: auto;
+}
+
+@media (max-width: 480px) {
+  .enduser-devices-auto-refresh {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .enduser-devices-auto-refresh-hint {
+    margin-left: 0;
+  }
+}
+
 /* Loading / error / empty – white text on blue */
 .enduser-devices-loading,
 .enduser-devices-error,
@@ -253,6 +326,10 @@
   transform: translateY(-2px);
 }
 
+.enduser-device-card-clickable {
+  cursor: pointer;
+}
+
 /* Card header – subtle blue band */
 .enduser-device-card-header {
   display: flex;
@@ -273,9 +350,16 @@
   flex-shrink: 0;
 }
 
+.enduser-device-status-dot.online,
 .enduser-device-status-dot.active {
   background: var(--enduser-orange);
   box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.35), 0 0 8px rgba(234, 88, 12, 0.4);
+}
+
+.enduser-device-status-dot.delay {
+  background: #d97706;
+  opacity: 1;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.3);
 }
 
 .enduser-device-status-dot.offline {
@@ -318,11 +402,18 @@
   letter-spacing: 0.04em;
 }
 
+.enduser-device-badge.online,
 .enduser-device-badge.active {
   background: var(--enduser-orange-soft);
   color: #c2410c;
   border: 1px solid rgba(234, 88, 12, 0.3);
   box-shadow: 0 1px 2px rgba(234, 88, 12, 0.1);
+}
+
+.enduser-device-badge.delay {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.3);
 }
 
 .enduser-device-badge.offline {
@@ -413,4 +504,133 @@
   text-overflow: ellipsis;
   min-width: 0;
   font-weight: 500;
+}
+
+/* Device map options modal */
+.enduser-device-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: enduser-device-modal-fade 0.2s ease;
+}
+
+@keyframes enduser-device-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.enduser-device-modal {
+  background: var(--enduser-white);
+  border-radius: 14px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.enduser-device-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--enduser-blue-tint);
+  border-bottom: 1px solid rgba(29, 78, 216, 0.12);
+}
+
+.enduser-device-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--enduser-slate);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0.5rem;
+}
+
+.enduser-device-modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--enduser-gray-dark);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.enduser-device-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.enduser-device-modal-body {
+  padding: 1.25rem;
+}
+
+.enduser-device-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.enduser-device-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.enduser-device-modal-btn-icon {
+  font-size: 1.125rem;
+}
+
+.enduser-device-modal-btn-locate {
+  color: var(--enduser-white);
+  background: var(--enduser-blue);
+}
+
+.enduser-device-modal-btn-locate:hover {
+  background: var(--enduser-blue-dark);
+  transform: scale(1.01);
+}
+
+.enduser-device-modal-btn-navigate {
+  color: var(--enduser-white);
+  background: var(--enduser-orange);
+}
+
+.enduser-device-modal-btn-navigate:hover {
+  background: var(--enduser-orange-hover);
+  transform: scale(1.01);
+}
+
+.enduser-device-modal-btn-desc {
+  margin: -0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--enduser-gray-text);
+  line-height: 1.4;
+}
+
+.enduser-device-modal-no-location {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--enduser-gray-dark);
+  text-align: center;
 }
