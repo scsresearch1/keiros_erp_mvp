@@ -11,6 +11,10 @@ const EndUserDevicesView = () => {
   const [userLocation, setUserLocation] = useState(null); // { lat, lng } when enabled
   const [locationError, setLocationError] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null); // device for Locate/Navigate modal
+  const [renameDevice, setRenameDevice] = useState(null); // device for rename/address modal
+  const [renameAddress, setRenameAddress] = useState('');
+  const [renameSaving, setRenameSaving] = useState(false);
+  const [renameError, setRenameError] = useState(null);
   const [refreshIntervalSeconds, setRefreshIntervalSeconds] = useState(30); // 0 = off
 
   const loadDevices = async () => {
@@ -51,6 +55,50 @@ const EndUserDevicesView = () => {
   const handleRefresh = () => {
     setRefreshing(true);
     loadDevices();
+  };
+
+  const openRenameModal = (device, evt) => {
+    if (evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
+    setRenameDevice(device);
+    setRenameAddress(device.address || '');
+    setRenameError(null);
+  };
+
+  const handleRenameSave = async () => {
+    if (!renameDevice) return;
+    const trimmed = renameAddress.trim();
+    setRenameSaving(true);
+    setRenameError(null);
+    try {
+      await firebaseService.updateDeviceMetadata(renameDevice.id || renameDevice.macAddress || renameDevice.deviceId, {
+        address: trimmed || null
+      });
+      // Update local state so UI reflects new address immediately
+      setDevices(prev =>
+        prev.map(d =>
+          (d.id || d.macAddress || d.deviceId) === (renameDevice.id || renameDevice.macAddress || renameDevice.deviceId)
+            ? {
+                ...d,
+                address: trimmed || null,
+                location: {
+                  ...(d.location || {}),
+                  address: trimmed || (d.location && d.location.address) || 'Location not available'
+                }
+              }
+            : d
+        )
+      );
+      setRenameSaving(false);
+      setRenameDevice(null);
+      setRenameAddress('');
+    } catch (err) {
+      console.error('[EndUserDevicesView] Error saving device address:', err);
+      setRenameError('Failed to save address. Please try again.');
+      setRenameSaving(false);
+    }
   };
 
   const handleLocationToggle = () => {
@@ -398,11 +446,27 @@ const EndUserDevicesView = () => {
                   )}
                 </div>
                 {(device.macAddress || device.id) && (
-                  <div className="enduser-device-row enduser-device-row-mac">
-                    <span className="enduser-device-value enduser-device-mac">
-                      {device.macAddress || device.id}
-                    </span>
-                  </div>
+                  <>
+                    <div className="enduser-device-row enduser-device-row-mac">
+                      <span className="enduser-device-value enduser-device-mac">
+                        {device.macAddress || device.id}
+                      </span>
+                      <button
+                        type="button"
+                        className="enduser-device-rename-btn"
+                        onClick={(e) => openRenameModal(device, e)}
+                        aria-label="Rename device and save address"
+                      >
+                        Rename
+                      </button>
+                    </div>
+                    {device.address && (
+                      <div className="enduser-device-row enduser-device-row-address">
+                        <span className="enduser-device-address-label">Address:</span>
+                        <span className="enduser-device-address-value">{device.address}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </article>
@@ -464,6 +528,77 @@ const EndUserDevicesView = () => {
               ) : (
                 <p className="enduser-device-modal-no-location">No location data for this device.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename / address modal */}
+      {renameDevice && (
+        <div
+          className="enduser-device-modal-overlay"
+          onClick={() => !renameSaving && setRenameDevice(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="enduser-device-rename-title"
+        >
+          <div
+            className="enduser-device-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="enduser-device-modal-header">
+              <h2 id="enduser-device-rename-title" className="enduser-device-modal-title">
+                Rename Device
+              </h2>
+              <button
+                type="button"
+                className="enduser-device-modal-close"
+                onClick={() => !renameSaving && setRenameDevice(null)}
+                aria-label="Close rename dialog"
+                disabled={renameSaving}
+              >
+                ×
+              </button>
+            </div>
+            <div className="enduser-device-modal-body">
+              <p className="enduser-device-rename-helper">
+                Enter a friendly address or label for&nbsp;
+                <span className="enduser-device-rename-mac">
+                  {renameDevice.macAddress || renameDevice.id}
+                </span>
+                .
+              </p>
+              <input
+                type="text"
+                className="enduser-device-rename-input"
+                value={renameAddress}
+                onChange={(e) => setRenameAddress(e.target.value)}
+                placeholder="e.g. Flat 402, TKR Ayodhya Residency"
+                disabled={renameSaving}
+              />
+              {renameError && (
+                <p className="enduser-device-rename-error" role="alert">
+                  {renameError}
+                </p>
+              )}
+              <div className="enduser-device-rename-actions">
+                <button
+                  type="button"
+                  className="enduser-device-modal-btn enduser-device-modal-btn-locate"
+                  onClick={handleRenameSave}
+                  disabled={renameSaving}
+                >
+                  {renameSaving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  className="enduser-device-modal-btn enduser-device-modal-btn-navigate"
+                  onClick={() => !renameSaving && setRenameDevice(null)}
+                  disabled={renameSaving}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>

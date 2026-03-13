@@ -570,6 +570,46 @@
   margin-top: 0.25rem;
 }
 
+.enduser-device-row-mac {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.enduser-device-rename-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.02);
+  color: var(--enduser-slate);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.enduser-device-rename-btn:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.enduser-device-row-address {
+  margin-top: 0.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.enduser-device-address-label {
+  color: var(--enduser-gray-text);
+  font-weight: 500;
+}
+
+.enduser-device-address-value {
+  color: var(--enduser-slate);
+}
+
 .enduser-device-row {
   align-items: center;
   gap: 0.5rem;
@@ -724,4 +764,36 @@
   font-size: 0.9375rem;
   color: var(--enduser-gray-dark);
   text-align: center;
+}
+
+/* Rename / address modal tweaks */
+.enduser-device-rename-helper {
+  font-size: 0.8125rem;
+  color: var(--enduser-gray-text);
+  margin: 0 0 0.5rem;
+}
+
+.enduser-device-rename-mac {
+  font-family: ui-monospace, 'SF Mono', monospace;
+}
+
+.enduser-device-rename-input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.5rem;
+}
+
+.enduser-device-rename-error {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
+.enduser-device-rename-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }

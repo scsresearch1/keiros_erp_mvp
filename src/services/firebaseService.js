@@ -152,7 +152,7 @@ class FirebaseService {
    */
   async getDeviceLatestLocation(macAddress) {
     try {
-      // Fetch all timestamped entries for this MAC address
+      // Fetch all timestamped entries (and optional metadata like address) for this MAC address
       const devicePath = macAddress;
       const timestampData = await this.fetchData(devicePath);
       
@@ -161,8 +161,12 @@ class FirebaseService {
         return null;
       }
       
-      // Get all timestamps and sort them (newest first); use latest entry with valid date only
-      const timestamps = Object.keys(timestampData).sort().reverse();
+      // Optional metadata stored alongside timestamps (e.g. address)
+      const addressField = typeof timestampData.address === 'string' ? timestampData.address : null;
+      const timestamps = Object.keys(timestampData)
+        .filter(key => key !== 'address')
+        .sort()
+        .reverse(); // newest first
       
       if (timestamps.length === 0) {
         console.warn(`[Firebase] No timestamped entries for device ${macAddress}`);
@@ -210,9 +214,9 @@ class FirebaseService {
           lat: lat ?? null,
           lng: lng ?? null,
           altitude: alt ?? null,
-          address: lat != null && lng != null
+          address: addressField || (lat != null && lng != null
             ? `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
-            : 'Location not available',
+            : 'Location not available'),
           accuracy: 10
         },
         status: isActive ? 'Active' : 'Offline',
@@ -221,6 +225,7 @@ class FirebaseService {
         lastUpdate: timestampDate,
         latestTimestamp: latestTimestamp,
         entryCount: timestamps.length,
+        address: addressField,
         fix: latestData.fix != null && latestData.fix !== '' ? String(latestData.fix) : null,
         wifi_rssi: latestData.wifi_rssi != null && latestData.wifi_rssi !== '' ? String(latestData.wifi_rssi) : null
       };
@@ -372,6 +377,32 @@ class FirebaseService {
       return await response.json();
     } catch (error) {
       console.error(`Error updating device location for ${deviceId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update device metadata (e.g. user-friendly address) under {deviceId}
+   * This matches the structure where timestamps live directly under the MAC address node.
+   */
+  async updateDeviceMetadata(deviceId, metadata) {
+    try {
+      const url = this.buildUrl(deviceId);
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metadata)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Metadata update failed: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error updating device metadata for ${deviceId}:`, error);
       throw error;
     }
   }
